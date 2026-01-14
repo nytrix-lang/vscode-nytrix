@@ -2,7 +2,7 @@
 	"name": "nytrix",
 	"icon": "logo.png",
 	"publisher": "x3ric",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"displayName": "Nytrix",
 	"description": "Syntax highlighting for Nytrix",
 	"categories": ["Programming Languages"],
