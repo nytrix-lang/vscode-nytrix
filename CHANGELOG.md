@@ -4,7 +4,14 @@ All notable changes are documented here.
 
 This project follows [Keep a Changelog] and adheres to [Semantic Versioning].
 
-## [0.0.1] – 2024-02-21
+## [0.0.2] – 2026-01-14
+
+### Fixed
+- Refined use syntax.
+- Readme typos.
+- Lang Icon.
+
+## [0.0.1] – 2026-01-13
 
 ### Added
 - Initial syntax highlighting support.
