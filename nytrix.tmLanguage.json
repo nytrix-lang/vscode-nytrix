@@ -1,0 +1,318 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Nytrix",
+  "fileTypes": [
+    "ny"
+  ],
+  "scopeName": "source.nytrix",
+  "patterns": [
+    {
+      "include": "#shebang"
+    },
+    {
+      "include": "#comment"
+    },
+    {
+      "include": "#string"
+    },
+    {
+      "include": "#number"
+    },
+    {
+      "include": "#keyword"
+    },
+    {
+      "include": "#constant"
+    },
+    {
+      "include": "#builtin"
+    },
+    {
+      "include": "#module"
+    },
+    {
+      "include": "#label"
+    },
+    {
+      "include": "#function-definition"
+    },
+    {
+      "include": "#method-call"
+    },
+    {
+      "include": "#function-call"
+    },
+    {
+      "include": "#operator"
+    },
+    {
+      "include": "#punctuation"
+    }
+  ],
+  "repository": {
+    "shebang": {
+      "patterns": [
+        {
+          "name": "comment.line.shebang.nytrix",
+          "match": "^#!.*$"
+        }
+      ]
+    },
+    "comment": {
+      "patterns": [
+        {
+          "name": "comment.block.nytrix",
+          "begin": ";\\*",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.begin.nytrix"
+            }
+          },
+          "end": "\\*;",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.end.nytrix"
+            }
+          }
+        },
+        {
+          "name": "comment.line.semicolon.nytrix",
+          "begin": ";",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.nytrix"
+            }
+          },
+          "end": "$"
+        }
+      ]
+    },
+    "escape": {
+      "patterns": [
+        {
+          "name": "constant.character.escape.nytrix",
+          "match": "\\\\(?:[0abfnrtv\\\\'\"n]|x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})"
+        },
+        {
+          "name": "invalid.illegal.escape.nytrix",
+          "match": "\\\\."
+        }
+      ]
+    },
+    "string": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.nytrix",
+          "begin": "\"",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.nytrix"
+            }
+          },
+          "end": "\"",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.nytrix"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.single.nytrix",
+          "begin": "'",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.nytrix"
+            }
+          },
+          "end": "'",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.nytrix"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            }
+          ]
+        }
+      ]
+    },
+    "number": {
+      "patterns": [
+        {
+          "name": "constant.numeric.hex.nytrix",
+          "match": "\\b0[xX][0-9A-Fa-f]+\\b"
+        },
+        {
+          "name": "constant.numeric.octal.nytrix",
+          "match": "\\b0[oO][0-7]+\\b"
+        },
+        {
+          "name": "constant.numeric.binary.nytrix",
+          "match": "\\b0[bB][01]+\\b"
+        },
+        {
+          "name": "constant.numeric.float.nytrix",
+          "match": "\\b[0-9]+\\.[0-9]*([eE][+-]?[0-9]+)?\\b"
+        },
+        {
+          "name": "constant.numeric.float.nytrix",
+          "match": "\\b\\.[0-9]+([eE][+-]?[0-9]+)?\\b"
+        },
+        {
+          "name": "constant.numeric.float.nytrix",
+          "match": "\\b[0-9]+[eE][+-]?[0-9]+\\b"
+        },
+        {
+          "name": "constant.numeric.decimal.nytrix",
+          "match": "\\b[0-9]+\\b"
+        }
+      ]
+    },
+    "keyword": {
+      "patterns": [
+        {
+          "name": "keyword.control.nytrix",
+          "match": "\\b(?:if|else|while|for|in|try|catch|defer|goto|return|break|continue|match|otherwise)\\b"
+        },
+        {
+          "name": "storage.type.nytrix",
+          "match": "\\b(?:fn|lambda|use|define|def|const)\\b"
+        }
+      ]
+    },
+    "constant": {
+      "patterns": [
+        {
+          "name": "constant.language.nytrix",
+          "match": "\\b(?:true|false|nil)\\b"
+        }
+      ]
+    },
+    "builtin": {
+      "patterns": [
+        {
+          "name": "support.function.builtin.nytrix",
+          "match": "\\b(?:print|input|len|range|map|filter|reduce|zip|enumerate|type_of|repr_of|is_callable|tuple|list|dict|set|load8|load16|load32|load64|store8|store16|store32|store64|malloc|free|set_idx|get|list_len|list_clone|sort|rt_dlopen|rt_dlsym|rt_syscall)\\b"
+        }
+      ]
+    },
+    "module": {
+      "patterns": [
+        {
+          "name": "support.type.module.nytrix",
+          "match": "\\b(?:io|fmt|collections|dict|set|queue|heap|str|bytes|char|math|logic|iter|itertools|iterutils|path|fs|os|stat|sys|repr|equal|bar|requests|zcore|reflect|ffi|mod)(?=\\.)"
+        }
+      ]
+    },
+    "label": {
+      "patterns": [
+        {
+          "name": "entity.name.label.nytrix",
+          "match": "^\\s*([A-Za-z_][A-Za-z0-9_]*)\\s*:(?!:)",
+          "captures": {
+            "1": {
+              "name": "entity.name.label.nytrix"
+            }
+          }
+        }
+      ]
+    },
+    "function-definition": {
+      "patterns": [
+        {
+          "name": "meta.function.definition.nytrix",
+          "match": "^\\s*fn\\s+([A-Za-z_][A-Za-z0-9_]*)\\b",
+          "captures": {
+            "0": {
+              "name": "meta.function.definition.nytrix"
+            },
+            "1": {
+              "name": "entity.name.function.nytrix"
+            }
+          }
+        }
+      ]
+    },
+    "method-call": {
+      "patterns": [
+        {
+          "name": "entity.name.function.method.nytrix",
+          "match": "\\.([A-Za-z_][A-Za-z0-9_]*)\\s*(?=\\()",
+          "captures": {
+            "1": {
+              "name": "entity.name.function.method.nytrix"
+            }
+          }
+        }
+      ]
+    },
+    "function-call": {
+      "patterns": [
+        {
+          "name": "entity.name.function.call.nytrix",
+          "match": "\\b([A-Za-z_][A-Za-z0-9_]*)\\s*(?=\\()",
+          "captures": {
+            "1": {
+              "name": "entity.name.function.call.nytrix"
+            }
+          }
+        }
+      ]
+    },
+    "operator": {
+      "patterns": [
+        {
+          "name": "keyword.operator.assignment.nytrix",
+          "match": "(?:=|\\+=|\\-=|\\*=|\\/=|%=|&=|\\|=|\\^=|<<=|>>=)"
+        },
+        {
+          "name": "keyword.operator.logical.nytrix",
+          "match": "(?:&&|\\|\\|)"
+        },
+        {
+          "name": "keyword.operator.comparison.nytrix",
+          "match": "(?:==|!=|<=|>=|<|>)"
+        },
+        {
+          "name": "keyword.operator.bitwise.nytrix",
+          "match": "(?:~|&|\\||\\^|<<|>>)"
+        },
+        {
+          "name": "keyword.operator.arithmetic.nytrix",
+          "match": "(?:\\+|\\-|\\*|\\/|%)"
+        },
+        {
+          "name": "keyword.operator.other.nytrix",
+          "match": "(?:!|\\?|:|\\.|\\.\\.)"
+        }
+      ]
+    },
+    "punctuation": {
+      "patterns": [
+        {
+          "name": "punctuation.separator.comma.nytrix",
+          "match": ","
+        },
+        {
+          "name": "punctuation.brackets.round.nytrix",
+          "match": "[()]"
+        },
+        {
+          "name": "punctuation.brackets.square.nytrix",
+          "match": "[\\[\\]]"
+        },
+        {
+          "name": "punctuation.brackets.curly.nytrix",
+          "match": "[{}]"
+        }
+      ]
+    }
+  }
+}
