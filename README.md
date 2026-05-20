@@ -1,17 +1,56 @@
 # Nytrix
 
-Syntax highlighting for [Nytrix].
+Nytrix language support for VS Code.
+
+
+## What You Get
+
+- Syntax highlighting for `.ny` and `.nshape`.
+- Markdown codeblock highlighting for `ny`, `nytrix`, and `nshape`.
+- `ny-lsp` diagnostics, hover, definitions, references, symbols, completion,
+  and signature help when the language server is available.
+- Run, check, format, expand, analyze, trace, profile, REPL, and debug commands.
+- Built-in gdb/MI debug adapter for Nytrix launch/attach workflows.
+- Toolchain discovery from settings, environment variables, workspace builds,
+  managed bootstrap roots, and `PATH`.
 
 ## Install
 
 The extension is available as `x3ric.nytrix` from the
 [VS Code Marketplace][vscm] and [Open VSX][ovsx].
 
-## License
-
-This extension is licensed under the [MIT][license].
 
 [Nytrix]: https://github.com/nytrix-lang
 [vscm]: https://marketplace.visualstudio.com/items?itemName=x3ric.nytrix
 [ovsx]: https://open-vsx.org/extension/x3ric/nytrix
 [license]: https://opensource.org/license/mit
+
+## Quick Start
+
+```sh
+npm install
+npm run check
+```
+
+Open a `.ny` or `.nshape` file, then run `Nytrix: Show Actions` from the command
+palette for the compact command surface.
+
+## Useful Commands
+
+- `Nytrix: Show Actions`
+- `Nytrix: Run File`
+- `Nytrix: Check File`
+- `Nytrix: Format File`
+- `Nytrix: Debug File`
+- `Nytrix: Start REPL`
+- `Nytrix: Install Toolchain`
+- `Nytrix: Show Toolchain`
+
+## More
+
+Detailed commands, settings, tool discovery, debugging notes, and test harness
+docs live in [DETAILS.md](DETAILS.md).
+
+## License
+
+MIT. See [LICENSE.md](LICENSE.md).

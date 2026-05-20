@@ -1,34 +1,1314 @@
 {
-	"name": "nytrix",
-	"icon": "logo.png",
-	"publisher": "x3ric",
-	"version": "0.0.3",
-	"displayName": "Nytrix",
-	"description": "Syntax highlighting for Nytrix",
-	"categories": ["Programming Languages"],
-	"keywords": ["nytrix"],
-	"author": "x3ric",
-	"license": "MIT",
-	"homepage": "https://github.com/nytrix-lang/vscode-nytrix",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/nytrix-lang/vscode-nytrix.git"
-	},
-	"bugs": "https://github.com/nytrix-lang/vscode-nytrix/issues",
-	"engines": {
-		"vscode": "^1.0.0"
-	},
-	"contributes": {
-		"languages": [{
-			"id": "nytrix",
-			"aliases": ["Nytrix", "nytrix", "ny"],
-			"extensions": [".ny"],
-			"configuration": "./language-configuration.json"
-		}],
-		"grammars": [{
-			"language": "nytrix",
-			"scopeName": "source.nytrix",
-			"path": "./nytrix.tmLanguage.json"
-		}]
-	}
+  "name": "nytrix",
+  "icon": "logo.png",
+  "publisher": "x3ric",
+  "version": "0.1.0",
+  "displayName": "Nytrix",
+  "description": "Nytrix language support: syntax, LSP diagnostics, run/debug, and tooling.",
+  "categories": [
+    "Programming Languages"
+  ],
+  "keywords": [
+    "nytrix",
+    "ny",
+    "lsp",
+    "language-server"
+  ],
+  "author": "x3ric",
+  "license": "MIT",
+  "homepage": "https://github.com/nytrix-lang/nytrix",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nytrix-lang/nytrix.git"
+  },
+  "bugs": "https://github.com/nytrix-lang/nytrix/issues",
+  "engines": {
+    "vscode": "^1.84.0"
+  },
+  "main": "./src/extension.js",
+  "files": [
+    "src/**",
+    "snippets/**",
+    "language-configuration.json",
+    "nshape-language-configuration.json",
+    "nytrix.tmLanguage.json",
+    "nshape.tmLanguage.json",
+    "markdown-nytrix.tmLanguage.json",
+    "README.md",
+    "DETAILS.md",
+    "CHANGELOG.md",
+    "LICENSE.md",
+    "logo.png",
+    "node_modules/**"
+  ],
+  "scripts": {
+    "check": "node --check src/extension.js && node --check src/nytrixDebugAdapter.js",
+    "package": "vsce package"
+  },
+  "activationEvents": [
+    "onLanguage:nytrix",
+    "onLanguage:nynth-shape",
+    "onCommand:nytrix.runFile",
+    "onCommand:nytrix.showActions",
+    "onCommand:nytrix.showOutput",
+    "onCommand:nytrix.clearOutput",
+    "onCommand:nytrix.pickRunMode",
+    "onCommand:nytrix.pickOutputReveal",
+    "onCommand:nytrix.startRepl",
+    "onCommand:nytrix.focusRepl",
+    "onCommand:nytrix.resetRepl",
+    "onCommand:nytrix.clearRepl",
+    "onCommand:nytrix.sendSelectionToRepl",
+    "onCommand:nytrix.runFileInRepl",
+    "onCommand:nytrix.loadFileInRepl",
+    "onCommand:nytrix.runSelection",
+    "onCommand:nytrix.checkFile",
+    "onCommand:nytrix.debugFile",
+    "onCommand:nytrix.expandFile",
+    "onCommand:nytrix.formatFile",
+    "onCommand:nytrix.optimizeFile",
+    "onCommand:nytrix.analyzeFile",
+    "onCommand:nytrix.traceFile",
+    "onCommand:nytrix.dumpAst",
+    "onCommand:nytrix.dumpLlvm",
+    "onCommand:nytrix.dumpStats",
+    "onCommand:nytrix.runTests",
+    "onCommand:nytrix.profileFile",
+    "onCommand:nytrix.restartLsp",
+    "onCommand:nytrix.installToolchain",
+    "onCommand:nytrix.showToolchain",
+    "onCommand:nytrix.pickProcess",
+    "onDebug",
+    "onDebugResolve:nytrix",
+    "onDebugInitialConfigurations:nytrix",
+    "onDebugDynamicConfigurations:nytrix",
+    "onTaskType:nytrix",
+    "onCommand:nytrix.goToDefinition",
+    "onCommand:nytrix.peekDefinition",
+    "onCommand:nytrix.findDefinitionByName",
+    "onCommand:nytrix.findReferences",
+    "onCommand:nytrix.renameSymbol",
+    "onCommand:nytrix.showHover",
+    "onCommand:nytrix.showSignatureHelp",
+    "onCommand:nytrix.gotoDocumentSymbol",
+    "onCommand:nytrix.gotoWorkspaceSymbol",
+    "onCommand:nytrix.navigateBack",
+    "onCommand:nytrix.navigateForward"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "nytrix",
+        "aliases": [
+          "Nytrix",
+          "nytrix",
+          "ny"
+        ],
+        "extensions": [
+          ".ny"
+        ],
+        "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "nynth-shape",
+        "aliases": [
+          "Nynth Shape",
+          "nshape"
+        ],
+        "extensions": [
+          ".nshape"
+        ],
+        "configuration": "./nshape-language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "nytrix",
+        "scopeName": "source.nytrix",
+        "path": "./nytrix.tmLanguage.json"
+      },
+      {
+        "language": "nynth-shape",
+        "scopeName": "source.nynth-shape",
+        "path": "./nshape.tmLanguage.json",
+        "embeddedLanguages": {
+          "meta.embedded.block.nytrix.nynth-shape": "nytrix",
+          "meta.embedded.block.c.nynth-shape": "c"
+        }
+      },
+      {
+        "scopeName": "markdown.nytrix.codeblock",
+        "path": "./markdown-nytrix.tmLanguage.json",
+        "injectTo": [
+          "text.html.markdown"
+        ],
+        "embeddedLanguages": {
+          "meta.embedded.block.nytrix": "nytrix",
+          "source.nytrix": "nytrix",
+          "meta.embedded.block.nynth-shape": "nynth-shape",
+          "source.nynth-shape": "nynth-shape"
+        }
+      }
+    ],
+    "snippets": [
+      {
+        "language": "nytrix",
+        "path": "./snippets/nytrix.code-snippets"
+      }
+    ],
+    "commands": [
+      {
+        "command": "nytrix.showActions",
+        "title": "Nytrix: Show Actions",
+        "category": "Nytrix",
+        "icon": "$(tools)"
+      },
+      {
+        "command": "nytrix.showOutput",
+        "title": "Nytrix: Show Output",
+        "category": "Nytrix",
+        "icon": "$(output)"
+      },
+      {
+        "command": "nytrix.clearOutput",
+        "title": "Nytrix: Clear Output",
+        "category": "Nytrix",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "nytrix.pickRunMode",
+        "title": "Nytrix: Set Run Mode",
+        "category": "Nytrix",
+        "icon": "$(settings-gear)"
+      },
+      {
+        "command": "nytrix.pickOutputReveal",
+        "title": "Nytrix: Set Output Reveal Mode",
+        "category": "Nytrix",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "nytrix.startRepl",
+        "title": "Nytrix: Start REPL",
+        "category": "Nytrix",
+        "icon": "$(terminal)"
+      },
+      {
+        "command": "nytrix.focusRepl",
+        "title": "Nytrix: Focus REPL",
+        "category": "Nytrix",
+        "icon": "$(terminal-view-icon)"
+      },
+      {
+        "command": "nytrix.resetRepl",
+        "title": "Nytrix: Reset REPL",
+        "category": "Nytrix",
+        "icon": "$(debug-restart)"
+      },
+      {
+        "command": "nytrix.clearRepl",
+        "title": "Nytrix: Clear REPL",
+        "category": "Nytrix",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "nytrix.sendSelectionToRepl",
+        "title": "Nytrix: Send Selection to REPL",
+        "category": "Nytrix",
+        "icon": "$(arrow-small-right)"
+      },
+      {
+        "command": "nytrix.runFileInRepl",
+        "title": "Nytrix: Run File in REPL",
+        "category": "Nytrix",
+        "icon": "$(play-circle)"
+      },
+      {
+        "command": "nytrix.loadFileInRepl",
+        "title": "Nytrix: Load File in REPL",
+        "category": "Nytrix",
+        "icon": "$(symbol-file)"
+      },
+      {
+        "command": "nytrix.runFile",
+        "title": "Nytrix: Run File",
+        "category": "Nytrix",
+        "icon": "$(play)"
+      },
+      {
+        "command": "nytrix.runSelection",
+        "title": "Nytrix: Run Selection",
+        "category": "Nytrix",
+        "icon": "$(run)"
+      },
+      {
+        "command": "nytrix.checkFile",
+        "title": "Nytrix: Check File",
+        "category": "Nytrix",
+        "icon": "$(pass)"
+      },
+      {
+        "command": "nytrix.debugFile",
+        "title": "Nytrix: Debug File",
+        "category": "Nytrix",
+        "icon": "$(debug-alt)"
+      },
+      {
+        "command": "nytrix.expandFile",
+        "title": "Nytrix: Expand File",
+        "category": "Nytrix",
+        "icon": "$(symbol-key)"
+      },
+      {
+        "command": "nytrix.formatFile",
+        "title": "Nytrix: Format File",
+        "category": "Nytrix",
+        "icon": "$(symbol-keyword)"
+      },
+      {
+        "command": "nytrix.optimizeFile",
+        "title": "Nytrix: Optimize File",
+        "category": "Nytrix",
+        "icon": "$(rocket)"
+      },
+      {
+        "command": "nytrix.analyzeFile",
+        "title": "Nytrix: Analyze File",
+        "category": "Nytrix",
+        "icon": "$(search)"
+      },
+      {
+        "command": "nytrix.traceFile",
+        "title": "Nytrix: Trace File",
+        "category": "Nytrix",
+        "icon": "$(bug)"
+      },
+      {
+        "command": "nytrix.dumpAst",
+        "title": "Nytrix: Dump AST",
+        "category": "Nytrix",
+        "icon": "$(symbol-namespace)"
+      },
+      {
+        "command": "nytrix.dumpLlvm",
+        "title": "Nytrix: Dump LLVM",
+        "category": "Nytrix",
+        "icon": "$(symbol-misc)"
+      },
+      {
+        "command": "nytrix.dumpStats",
+        "title": "Nytrix: Dump Compile Stats",
+        "category": "Nytrix",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "nytrix.runTests",
+        "title": "Nytrix: Run Runtime Tests",
+        "category": "Nytrix",
+        "icon": "$(testing-run-all)"
+      },
+      {
+        "command": "nytrix.profileFile",
+        "title": "Nytrix: Profile File",
+        "category": "Nytrix",
+        "icon": "$(pulse)"
+      },
+      {
+        "command": "nytrix.restartLsp",
+        "title": "Nytrix: Restart Language Server",
+        "category": "Nytrix",
+        "icon": "$(debug-restart)"
+      },
+      {
+        "command": "nytrix.installToolchain",
+        "title": "Nytrix: Install Toolchain",
+        "category": "Nytrix",
+        "icon": "$(cloud-download)"
+      },
+      {
+        "command": "nytrix.showToolchain",
+        "title": "Nytrix: Show Toolchain",
+        "category": "Nytrix",
+        "icon": "$(terminal)"
+      },
+      {
+        "command": "nytrix.goToDefinition",
+        "title": "Nytrix: Go to Definition",
+        "category": "Nytrix",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "nytrix.peekDefinition",
+        "title": "Nytrix: Peek Definition",
+        "category": "Nytrix",
+        "icon": "$(peek)"
+      },
+      {
+        "command": "nytrix.findDefinitionByName",
+        "title": "Nytrix: Find Definition by Name",
+        "category": "Nytrix",
+        "icon": "$(symbol-method)"
+      },
+      {
+        "command": "nytrix.findReferences",
+        "title": "Nytrix: Find References",
+        "category": "Nytrix",
+        "icon": "$(references)"
+      },
+      {
+        "command": "nytrix.renameSymbol",
+        "title": "Nytrix: Rename Symbol",
+        "category": "Nytrix",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "nytrix.showHover",
+        "title": "Nytrix: Show Hover",
+        "category": "Nytrix",
+        "icon": "$(info)"
+      },
+      {
+        "command": "nytrix.showSignatureHelp",
+        "title": "Nytrix: Show Signature Help",
+        "category": "Nytrix",
+        "icon": "$(symbol-parameter)"
+      },
+      {
+        "command": "nytrix.gotoDocumentSymbol",
+        "title": "Nytrix: Go to Symbol in File",
+        "category": "Nytrix",
+        "icon": "$(symbol-method)"
+      },
+      {
+        "command": "nytrix.gotoWorkspaceSymbol",
+        "title": "Nytrix: Go to Symbol in Workspace",
+        "category": "Nytrix",
+        "icon": "$(symbol-namespace)"
+      },
+      {
+        "command": "nytrix.navigateBack",
+        "title": "Nytrix: Go Back",
+        "category": "Nytrix",
+        "icon": "$(arrow-left)"
+      },
+      {
+        "command": "nytrix.navigateForward",
+        "title": "Nytrix: Go Forward",
+        "category": "Nytrix",
+        "icon": "$(arrow-right)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "nytrix.showActions",
+          "when": "resourceLangId == nytrix",
+          "group": "navigation@0"
+        },
+        {
+          "command": "nytrix.startRepl",
+          "when": "resourceLangId == nytrix",
+          "group": "navigation@1.5"
+        },
+        {
+          "command": "nytrix.pickRunMode",
+          "when": "resourceLangId == nytrix",
+          "group": "navigation@1.7"
+        },
+        {
+          "command": "nytrix.runFile",
+          "when": "resourceLangId == nytrix",
+          "group": "navigation@1"
+        },
+        {
+          "command": "nytrix.debugFile",
+          "when": "resourceLangId == nytrix",
+          "group": "navigation@2"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "nytrix.runSelection",
+          "when": "resourceLangId == nytrix && editorHasSelection",
+          "group": "0_selection@1"
+        },
+        {
+          "command": "nytrix.sendSelectionToRepl",
+          "when": "resourceLangId == nytrix",
+          "group": "0_selection@2"
+        },
+        {
+          "command": "nytrix.goToDefinition",
+          "when": "resourceLangId == nytrix",
+          "group": "navigation@1"
+        },
+        {
+          "command": "nytrix.peekDefinition",
+          "when": "resourceLangId == nytrix",
+          "group": "navigation@2"
+        },
+        {
+          "command": "nytrix.findDefinitionByName",
+          "when": "resourceLangId == nytrix",
+          "group": "navigation@2.5"
+        },
+        {
+          "command": "nytrix.findReferences",
+          "when": "resourceLangId == nytrix",
+          "group": "navigation@3"
+        },
+        {
+          "command": "nytrix.renameSymbol",
+          "when": "resourceLangId == nytrix",
+          "group": "navigation@4"
+        },
+        {
+          "command": "nytrix.showHover",
+          "when": "resourceLangId == nytrix",
+          "group": "navigation@5"
+        },
+        {
+          "command": "nytrix.showSignatureHelp",
+          "when": "resourceLangId == nytrix",
+          "group": "navigation@6"
+        },
+        {
+          "command": "nytrix.gotoDocumentSymbol",
+          "when": "resourceLangId == nytrix",
+          "group": "navigation@7"
+        },
+        {
+          "command": "nytrix.gotoWorkspaceSymbol",
+          "when": "resourceLangId == nytrix",
+          "group": "navigation@8"
+        },
+        {
+          "command": "nytrix.checkFile",
+          "when": "resourceLangId == nytrix",
+          "group": "2_workspace@0"
+        },
+        {
+          "command": "nytrix.analyzeFile",
+          "when": "resourceLangId == nytrix",
+          "group": "2_workspace@1"
+        },
+        {
+          "command": "nytrix.expandFile",
+          "when": "resourceLangId == nytrix",
+          "group": "2_workspace@1.5"
+        },
+        {
+          "command": "nytrix.traceFile",
+          "when": "resourceLangId == nytrix",
+          "group": "2_workspace@2"
+        },
+        {
+          "command": "nytrix.profileFile",
+          "when": "resourceLangId == nytrix",
+          "group": "2_workspace@3"
+        },
+        {
+          "command": "nytrix.debugFile",
+          "when": "resourceLangId == nytrix",
+          "group": "2_workspace@4"
+        },
+        {
+          "command": "nytrix.formatFile",
+          "when": "resourceLangId == nytrix",
+          "group": "1_modification@1"
+        },
+        {
+          "command": "nytrix.optimizeFile",
+          "when": "resourceLangId == nytrix",
+          "group": "1_modification@2"
+        },
+        {
+          "command": "nytrix.navigateBack",
+          "when": "resourceLangId == nytrix",
+          "group": "navigation@9"
+        },
+        {
+          "command": "nytrix.navigateForward",
+          "when": "resourceLangId == nytrix",
+          "group": "navigation@10"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "nytrix.showActions",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.startRepl",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.pickRunMode",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.pickOutputReveal",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.focusRepl",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.sendSelectionToRepl",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.runFileInRepl",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.loadFileInRepl",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.resetRepl",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.clearRepl",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.showOutput"
+        },
+        {
+          "command": "nytrix.clearOutput"
+        },
+        {
+          "command": "nytrix.runFile",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.runSelection",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.checkFile",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.debugFile",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.expandFile",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.formatFile",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.optimizeFile",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.analyzeFile",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.traceFile",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.dumpAst",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.dumpLlvm",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.dumpStats",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.profileFile",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.runTests"
+        },
+        {
+          "command": "nytrix.installToolchain"
+        },
+        {
+          "command": "nytrix.goToDefinition",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.peekDefinition",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.findDefinitionByName",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.findReferences",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.renameSymbol",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.showHover",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.showSignatureHelp",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.gotoDocumentSymbol",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.gotoWorkspaceSymbol",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.navigateBack",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.navigateForward",
+          "when": "resourceLangId == nytrix"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "nytrix.showActions",
+        "key": "ctrl+alt+t",
+        "mac": "cmd+alt+t",
+        "when": "editorLangId == nytrix"
+      },
+      {
+        "command": "nytrix.sendSelectionToRepl",
+        "key": "ctrl+alt+enter",
+        "mac": "cmd+alt+enter",
+        "when": "editorLangId == nytrix"
+      },
+      {
+        "command": "nytrix.startRepl",
+        "key": "ctrl+alt+shift+enter",
+        "mac": "cmd+alt+shift+enter",
+        "when": "editorLangId == nytrix"
+      },
+      {
+        "command": "nytrix.runFile",
+        "key": "ctrl+alt+r",
+        "mac": "cmd+alt+r",
+        "when": "editorLangId == nytrix"
+      },
+      {
+        "command": "nytrix.formatFile",
+        "key": "ctrl+alt+f",
+        "mac": "cmd+alt+f",
+        "when": "editorLangId == nytrix"
+      },
+      {
+        "command": "nytrix.checkFile",
+        "key": "ctrl+alt+c",
+        "mac": "cmd+alt+c",
+        "when": "editorLangId == nytrix"
+      },
+      {
+        "command": "nytrix.analyzeFile",
+        "key": "ctrl+alt+a",
+        "mac": "cmd+alt+a",
+        "when": "editorLangId == nytrix"
+      },
+      {
+        "command": "nytrix.debugFile",
+        "key": "ctrl+alt+d",
+        "mac": "cmd+alt+d",
+        "when": "editorLangId == nytrix"
+      },
+      {
+        "command": "nytrix.expandFile",
+        "key": "ctrl+alt+e",
+        "mac": "cmd+alt+e",
+        "when": "editorLangId == nytrix"
+      },
+      {
+        "command": "nytrix.goToDefinition",
+        "key": "ctrl+alt+.",
+        "mac": "cmd+alt+.",
+        "when": "editorLangId == nytrix"
+      },
+      {
+        "command": "nytrix.findDefinitionByName",
+        "key": "ctrl+alt+shift+.",
+        "mac": "cmd+alt+shift+.",
+        "when": "editorLangId == nytrix"
+      },
+      {
+        "command": "nytrix.findReferences",
+        "key": "ctrl+alt+shift+r",
+        "mac": "cmd+alt+shift+r",
+        "when": "editorLangId == nytrix"
+      },
+      {
+        "command": "nytrix.showHover",
+        "key": "ctrl+alt+h",
+        "mac": "cmd+alt+h",
+        "when": "editorLangId == nytrix"
+      },
+      {
+        "command": "nytrix.gotoDocumentSymbol",
+        "key": "ctrl+alt+s",
+        "mac": "cmd+alt+s",
+        "when": "editorLangId == nytrix"
+      },
+      {
+        "command": "nytrix.navigateBack",
+        "key": "ctrl+alt+left",
+        "mac": "cmd+alt+left",
+        "when": "editorLangId == nytrix"
+      },
+      {
+        "command": "nytrix.peekDefinition",
+        "key": "ctrl+alt+p",
+        "mac": "cmd+alt+p",
+        "when": "editorLangId == nytrix"
+      },
+      {
+        "command": "nytrix.showSignatureHelp",
+        "key": "ctrl+alt+shift+h",
+        "mac": "cmd+alt+shift+h",
+        "when": "editorLangId == nytrix"
+      },
+      {
+        "command": "nytrix.gotoWorkspaceSymbol",
+        "key": "ctrl+alt+shift+s",
+        "mac": "cmd+alt+shift+s",
+        "when": "editorLangId == nytrix"
+      },
+      {
+        "command": "nytrix.navigateForward",
+        "key": "ctrl+alt+right",
+        "mac": "cmd+alt+right",
+        "when": "editorLangId == nytrix"
+      }
+    ],
+    "breakpoints": [
+      {
+        "language": "nytrix"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "nytrix",
+        "label": "Nytrix",
+        "program": "./src/nytrixDebugAdapter.js",
+        "runtime": "node",
+        "languages": [
+          "nytrix"
+        ],
+        "configurationAttributes": {
+          "launch": {
+            "required": [
+              "program"
+            ],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "Nytrix source file to debug.",
+                "default": "${file}"
+              },
+              "args": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Program arguments."
+              },
+              "cwd": {
+                "type": "string",
+                "description": "Working directory.",
+                "default": "${workspaceFolder}"
+              },
+              "env": {
+                "type": "object",
+                "description": "Environment variables for the debug adapter or debuggee."
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Ask the debug adapter to stop at entry.",
+                "default": false
+              },
+              "trace": {
+                "type": "boolean",
+                "description": "Enable verbose adapter tracing when supported.",
+                "default": false
+              },
+              "dapPath": {
+                "type": "string",
+                "description": "Path to a Nytrix Debug Adapter Protocol server. Falls back to nytrix.debugAdapter.path or NYTRIX_DAP."
+              },
+              "dapArgs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Extra arguments passed to the Nytrix debug adapter."
+              },
+              "nyPath": {
+                "type": "string",
+                "description": "Path to ny for adapters that need the compiler."
+              },
+              "gdbPath": {
+                "type": "string",
+                "description": "Path to gdb for the built-in Nytrix native debug adapter."
+              },
+              "compilerArgs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Extra compiler arguments before -O0 -g -o <debug-binary>."
+              },
+              "debugLocals": {
+                "type": "boolean",
+                "description": "Emit richer local/argument debug info. Safer default is false because some builds are more stable without it.",
+                "default": false
+              },
+              "justMyCode": {
+                "type": "boolean",
+                "description": "Prefer user/workspace frames in stack traces and hide runtime scaffolding by default.",
+                "default": true
+              },
+              "traceRuntime": {
+                "type": "boolean",
+                "description": "Compile and run with Nytrix runtime call tracing enabled.",
+                "default": false
+              },
+              "traceValues": {
+                "type": "boolean",
+                "description": "Print traced return values for matching function calls.",
+                "default": false
+              },
+              "traceVerbose": {
+                "type": "boolean",
+                "description": "Also print fine-grained traced source locations.",
+                "default": false
+              },
+              "traceFilter": {
+                "type": "string",
+                "description": "Optional function-name filter for runtime tracing. Accepts comma-separated substrings or prefix* patterns.",
+                "default": ""
+              },
+              "outputDir": {
+                "type": "string",
+                "description": "Directory for temporary debug ELFs."
+              },
+              "sourceFileMap": {
+                "type": "object",
+                "description": "Map debug info source roots to local workspace roots, for example {\"/build/root\": \"${workspaceFolder}\"}."
+              }
+            }
+          },
+          "attach": {
+            "required": [
+              "processId"
+            ],
+            "properties": {
+              "processId": {
+                "type": [
+                  "number",
+                  "string"
+                ],
+                "description": "Process id to attach to. Use ${command:nytrix.pickProcess} for a picker."
+              },
+              "program": {
+                "type": "string",
+                "description": "Optional executable path, used by gdb for symbols."
+              },
+              "cwd": {
+                "type": "string",
+                "description": "Working directory.",
+                "default": "${workspaceFolder}"
+              },
+              "env": {
+                "type": "object",
+                "description": "Environment variables for the debug adapter."
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Keep the process stopped after attach.",
+                "default": true
+              },
+              "trace": {
+                "type": "boolean",
+                "description": "Enable verbose adapter tracing.",
+                "default": false
+              },
+              "gdbPath": {
+                "type": "string",
+                "description": "Path to gdb for the built-in Nytrix native debug adapter."
+              },
+              "sourceFileMap": {
+                "type": "object",
+                "description": "Map debug info source roots to local workspace roots."
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "nytrix",
+            "request": "launch",
+            "name": "Nytrix: Debug Current File",
+            "program": "${file}",
+            "cwd": "${workspaceFolder}",
+            "args": [],
+            "stopOnEntry": false,
+            "traceRuntime": false,
+            "traceValues": false,
+            "traceVerbose": false,
+            "traceFilter": "",
+            "debugLocals": false,
+            "justMyCode": true,
+            "compilerArgs": []
+          },
+          {
+            "type": "nytrix",
+            "request": "attach",
+            "name": "Nytrix: Attach to Process",
+            "processId": "${command:nytrix.pickProcess}",
+            "cwd": "${workspaceFolder}",
+            "stopOnEntry": true
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "Nytrix: Debug current file",
+            "description": "Debug the active Nytrix file through the built-in gdb/MI adapter.",
+            "body": {
+              "type": "nytrix",
+              "request": "launch",
+              "name": "Nytrix: Debug ${fileBasename}",
+              "program": "${file}",
+              "cwd": "${workspaceFolder}",
+              "args": [],
+              "stopOnEntry": false,
+              "traceRuntime": false,
+              "traceValues": false,
+              "traceVerbose": false,
+              "traceFilter": "",
+              "debugLocals": false,
+              "justMyCode": true,
+              "compilerArgs": []
+            }
+          },
+          {
+            "label": "Nytrix: Attach to process",
+            "description": "Attach the built-in gdb/MI adapter to a running Nytrix process.",
+            "body": {
+              "type": "nytrix",
+              "request": "attach",
+              "name": "Nytrix: Attach",
+              "processId": "${command:nytrix.pickProcess}",
+              "cwd": "${workspaceFolder}",
+              "stopOnEntry": true
+            }
+          }
+        ]
+      }
+    ],
+    "taskDefinitions": [
+      {
+        "type": "nytrix",
+        "required": [
+          "task"
+        ],
+        "properties": {
+          "task": {
+            "type": "string",
+            "description": "Nytrix task id: check, run, expand, trace, dump-ast, dump-llvm, dump-stats, format, analyze, tests, profile."
+          }
+        }
+      }
+    ],
+    "problemMatchers": [
+      {
+        "name": "nytrix",
+        "owner": "nytrix",
+        "fileLocation": [
+          "autoDetect",
+          "${workspaceFolder}"
+        ],
+        "pattern": {
+          "regexp": "^(.*?):(\\d+):(\\d+):\\s+(?:\\[[^\\]]+\\]\\s+)?(?:(warning|error|note):?\\s+)?(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        }
+      }
+    ],
+    "configuration": {
+      "title": "Nytrix",
+      "properties": {
+        "nytrix.path": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the ny compiler. Empty means auto-detect from workspace, ~/nytrix, environment, then PATH."
+        },
+        "nytrix.lsp.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Start ny-lsp for .ny files when it can be found."
+        },
+        "nytrix.lsp.path": {
+          "type": "string",
+          "default": "",
+          "description": "Path to ny-lsp. Empty means auto-detect from workspace, ~/nytrix, environment, then PATH."
+        },
+        "nytrix.bootstrap.mode": {
+          "type": "string",
+          "enum": [
+            "prompt",
+            "auto",
+            "off"
+          ],
+          "default": "prompt",
+          "markdownDescription": "How the extension should recover when `ny` or `ny-lsp` is missing. `prompt` asks before cloning/building the official Nytrix repo or setting paths, `auto` prompts as soon as a missing tool is needed, and `off` disables bootstrap unless you run `Nytrix: Install Toolchain` yourself."
+        },
+        "nytrix.bootstrap.root": {
+          "type": "string",
+          "default": "${home}/.local/share/nytrix",
+          "description": "Install/update root for the extension-managed Nytrix checkout."
+        },
+        "nytrix.bootstrap.repo": {
+          "type": "string",
+          "default": "https://github.com/nytrix-lang/nytrix",
+          "description": "Git repository cloned by Nytrix: Install Toolchain."
+        },
+        "nytrix.bootstrap.ref": {
+          "type": "string",
+          "default": "main",
+          "description": "Branch, tag, or ref name fetched by Nytrix: Install Toolchain."
+        },
+        "nytrix.lsp.arguments": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "description": "Extra arguments passed to ny-lsp."
+        },
+        "nytrix.debugAdapter.path": {
+          "type": "string",
+          "default": "",
+          "description": "Path to an external Nytrix Debug Adapter Protocol server. Used when nytrix.debugAdapter.useInternal is false."
+        },
+        "nytrix.debugAdapter.useInternal": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use the built-in gdb/MI-backed Nytrix DAP adapter. Disable to use nytrix.debugAdapter.path or NYTRIX_DAP."
+        },
+        "nytrix.debugAdapter.arguments": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "description": "Extra arguments passed to the Nytrix debug adapter."
+        },
+        "nytrix.debug.gdbPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to gdb for the built-in native debug adapter. Empty means PATH."
+        },
+        "nytrix.debug.compilerArguments": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "description": "Extra compiler arguments used for debug builds before -O0 -g -o."
+        },
+        "nytrix.debug.dwarfVersion": {
+          "type": "number",
+          "default": 0,
+          "description": "DWARF version for built-in debug launches. 0 lets the compiler choose."
+        },
+        "nytrix.debug.debugLocals": {
+          "type": "boolean",
+          "default": false,
+          "description": "Emit fuller local/argument debug info for built-in debug launches. This can improve variables/evaluate fidelity but the safer default is off."
+        },
+        "nytrix.debug.justMyCode": {
+          "type": "boolean",
+          "default": true,
+          "description": "Hide runtime scaffolding and prefer user/workspace frames in stack traces and debug backtraces."
+        },
+        "nytrix.debug.traceRuntime": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable Nytrix runtime call tracing in built-in debug launches."
+        },
+        "nytrix.debug.traceValues": {
+          "type": "boolean",
+          "default": false,
+          "description": "Include traced return values in built-in debug launches."
+        },
+        "nytrix.debug.traceVerbose": {
+          "type": "boolean",
+          "default": false,
+          "description": "Include fine-grained traced source locations in built-in debug launches."
+        },
+        "nytrix.debug.traceFilter": {
+          "type": "string",
+          "default": "",
+          "description": "Optional function-name filter for built-in debug runtime tracing."
+        },
+        "nytrix.debug.outputDir": {
+          "type": "string",
+          "default": "",
+          "description": "Directory for temporary debug ELFs. Empty uses build/cache/vscode-dap under the workspace."
+        },
+        "nytrix.debug.sourceFileMap": {
+          "type": "object",
+          "default": {},
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Default source path map for debugger sessions. Keys are debug-info/source roots, values are local roots."
+        },
+        "nytrix.test.runtimeSuitePath": {
+          "type": "string",
+          "default": "etc/tests/rt",
+          "description": "Runtime test suite path passed to ny-test."
+        },
+        "nytrix.run.arguments": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "description": "Extra arguments passed after the current file when running Nytrix."
+        },
+        "nytrix.run.cwd": {
+          "type": "string",
+          "default": "",
+          "description": "Working directory for run/check/expand commands. Empty uses the workspace folder or file directory."
+        },
+        "nytrix.run.mode": {
+          "type": "string",
+          "enum": [
+            "terminal",
+            "output",
+            "repl"
+          ],
+          "default": "terminal",
+          "markdownDescription": "How `Run File` and `Run Selection` behave. `terminal` uses the shared integrated terminal, `output` streams into the Nytrix output channel, and `repl` sends the file/selection into the persistent Nytrix REPL."
+        },
+        "nytrix.run.useIntegratedTerminal": {
+          "type": "boolean",
+          "default": true,
+          "description": "Legacy terminal toggle for run commands. When nytrix.run.mode is output, the output channel is always used."
+        },
+        "nytrix.run.reuseTerminal": {
+          "type": "boolean",
+          "default": true,
+          "description": "Reuse one Nytrix integrated terminal for run/test/profile commands instead of opening a new terminal every time."
+        },
+        "nytrix.repl.cwd": {
+          "type": "string",
+          "default": "",
+          "description": "Working directory for the persistent Nytrix REPL. Empty uses the active workspace or file directory."
+        },
+        "nytrix.repl.arguments": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "description": "Extra arguments appended after -i when starting the persistent Nytrix REPL."
+        },
+        "nytrix.repl.usePlain": {
+          "type": "boolean",
+          "default": false,
+          "description": "Start the persistent REPL with --plain-repl for the simplest possible terminal behavior."
+        },
+        "nytrix.repl.revealTerminal": {
+          "type": "boolean",
+          "default": true,
+          "description": "Reveal the REPL terminal whenever the extension starts it or sends code into it."
+        },
+        "nytrix.check.onSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use fallback compiler diagnostics on save only when ny-lsp is unavailable."
+        },
+        "nytrix.analyze.onSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run ny-fmt analyzer hints on save and surface style / maintainability / optimization guidance alongside compiler diagnostics."
+        },
+        "nytrix.codeLens.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show compact Run/Check/Expand/REPL/Debug action lenses at the top of Nytrix files."
+        },
+        "nytrix.errorLens.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Render compact inline Nytrix diagnostics after the affected line, alongside squiggles and Problems entries."
+        },
+        "nytrix.errorLens.includeHints": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include analyzer hints and notes in the inline Nytrix diagnostic lens, not just errors and warnings."
+        },
+        "nytrix.errorLens.maxItems": {
+          "type": "number",
+          "default": 40,
+          "minimum": 0,
+          "description": "Maximum inline Nytrix diagnostics to render in one editor at a time."
+        },
+        "nytrix.output.reveal": {
+          "type": "string",
+          "enum": [
+            "errors",
+            "always",
+            "never"
+          ],
+          "default": "errors",
+          "markdownDescription": "When to reveal the shared Nytrix output channel for extension-run commands. `errors` shows it only on failures unless a command explicitly needs streamed output."
+        },
+        "nytrix.output.clearBeforeRun": {
+          "type": "boolean",
+          "default": false,
+          "description": "Clear the Nytrix output channel before each new command block instead of appending a timestamped history."
+        },
+        "nytrix.env": {
+          "type": "object",
+          "default": {},
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Environment variables added to Nytrix tool processes."
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "^3.2.2"
+  }
 }

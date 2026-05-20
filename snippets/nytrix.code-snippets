@@ -1,0 +1,120 @@
+{
+  "Nytrix Main": {
+    "prefix": "main",
+    "body": [
+      "fn main(): int {",
+      "   ${1}",
+      "   return 0",
+      "}"
+    ],
+    "description": "Entry point with an explicit int return."
+  },
+  "Nytrix Function": {
+    "prefix": "fn",
+    "body": [
+      "fn ${1:name}(${2})${3:: ${4}} {",
+      "   ${5}",
+      "}"
+    ],
+    "description": "Function declaration."
+  },
+  "Nytrix Module": {
+    "prefix": "module",
+    "body": [
+      "module ${1:std.example}(",
+      "   ${2}",
+      ")"
+    ],
+    "description": "Module export block."
+  },
+  "Nytrix Use": {
+    "prefix": "use",
+    "body": [
+      "use ${1:std.core}"
+    ],
+    "description": "Import a module."
+  },
+  "Nytrix Struct": {
+    "prefix": "struct",
+    "body": [
+      "struct ${1:Name} {",
+      "   ${2:Type}: ${3:field}",
+      "}"
+    ],
+    "description": "Struct declaration."
+  },
+  "Nytrix Layout": {
+    "prefix": "layout",
+    "body": [
+      "layout ${1:Name} {",
+      "   ${2:Type}: ${3:field}",
+      "}"
+    ],
+    "description": "Layout declaration."
+  },
+  "Nytrix Enum": {
+    "prefix": "enum",
+    "body": [
+      "enum ${1:Name} {",
+      "   ${2:Value}",
+      "}"
+    ],
+    "description": "Enum declaration."
+  },
+  "Nytrix If": {
+    "prefix": "if",
+    "body": [
+      "if(${1:cond}){",
+      "   ${2}",
+      "}"
+    ],
+    "description": "If block."
+  },
+  "Nytrix For": {
+    "prefix": "for",
+    "body": [
+      "for(${1:item} in ${2:items}){",
+      "   ${3}",
+      "}"
+    ],
+    "description": "For-in loop."
+  },
+  "Nytrix Case": {
+    "prefix": "case",
+    "body": [
+      "case ${1:value} {",
+      "   ${2:pattern} => ${3:result}",
+      "}"
+    ],
+    "description": "Case expression."
+  },
+  "Nytrix Comptime Template": {
+    "prefix": "ctmpl",
+    "body": [
+      "comptime template ${1:name}(${2}) {",
+      "   ${3}",
+      "}"
+    ],
+    "description": "Comptime template."
+  },
+  "Nytrix Diagnostic Rule": {
+    "prefix": "diag",
+    "body": [
+      "comptime diagnostic rule ${1:name} {",
+      "   when ${2:pred}",
+      "   error \"${3:message}\"",
+      "   fix \"${4:hint}\"",
+      "}"
+    ],
+    "description": "Comptime diagnostic rule."
+  },
+  "Nytrix ASM": {
+    "prefix": "asm",
+    "body": [
+      "asm(\"",
+      "   ${1:mov $1, $0}",
+      "\", \"${2:=r,r}\"${3:, ${4:value}})"
+    ],
+    "description": "Inline asm block."
+  }
+}

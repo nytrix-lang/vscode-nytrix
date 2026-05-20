@@ -1,26 +1,28 @@
 # Changelog
 
-All notable changes are documented here.
+Compact release notes for the Nytrix VS Code extension.
 
-This project follows [Keep a Changelog] and adheres to [Semantic Versioning].
+## 0.1.0 - 2026-05-21
 
-## 0.0.3 – 2026-01-14
+- Added `.ny` and `.nshape` syntax support, including Ny/C embedded shape
+  source blocks.
+- Added `ny-lsp` integration with diagnostics, hover, definitions, references,
+  symbols, completion, and signature help.
+- Added run/check/format/expand/analyze/trace/profile/test/REPL commands.
+- Added built-in gdb/MI debug adapter for launch and attach workflows.
+- Added tool discovery/bootstrap for local builds, env paths, managed installs,
+  and `PATH`.
+- Moved long-form docs to `DETAILS.md`; kept `README.md` short.
 
-### Fixed
-- Changelog typos.
+## 0.0.3 - 2026-01-14
 
-## 0.0.2 – 2026-01-14
+- Fixed changelog typos.
 
-### Fixed
-- Refined use syntax.
-- Readme typos.
-- Lang Icon.
+## 0.0.2 - 2026-01-14
 
-## 0.0.1 – 2026-01-13
+- Refined use-syntax highlighting and README wording.
+- Added language icon polish.
 
-### Added
-- Initial syntax highlighting support.
+## 0.0.1 - 2026-01-13
 
-
-[Keep a Changelog]: https://keepachangelog.com/en/1.1.0/
-[Semantic Versioning]: https://semver.org/spec/v2.0.0.html
+- Initial syntax highlighting.

@@ -1,42 +1,134 @@
 {
   "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
   "name": "Nytrix",
-  "fileTypes": ["ny"],
+  "fileTypes": [
+    "ny"
+  ],
   "scopeName": "source.nytrix",
   "patterns": [
-    { "include": "#shebang" },
-    { "include": "#comment" },
-    { "include": "#string" },
-    { "include": "#number" },
-    { "include": "#use-import" },
-    { "include": "#keyword" },
-    { "include": "#constant" },
-    { "include": "#builtin" },
-    { "include": "#label" },
-    { "include": "#function-definition" },
-    { "include": "#method-call" },
-    { "include": "#function-call" },
-    { "include": "#operator" },
-    { "include": "#punctuation" }
+    {
+      "include": "#shebang"
+    },
+    {
+      "include": "#comment"
+    },
+    {
+      "include": "#preprocessor"
+    },
+    {
+      "include": "#attribute"
+    },
+    {
+      "include": "#embedded-string"
+    },
+    {
+      "include": "#string"
+    },
+    {
+      "include": "#number"
+    },
+    {
+      "include": "#module"
+    },
+    {
+      "include": "#declaration"
+    },
+    {
+      "include": "#keyword"
+    },
+    {
+      "include": "#constant"
+    },
+    {
+      "include": "#type"
+    },
+    {
+      "include": "#builtin"
+    },
+    {
+      "include": "#function"
+    },
+    {
+      "include": "#operator"
+    },
+    {
+      "include": "#punctuation"
+    }
   ],
   "repository": {
     "shebang": {
-      "patterns": [{ "name": "comment.line.shebang.nytrix", "match": "^#!.*$" }]
+      "patterns": [
+        {
+          "name": "comment.line.shebang.nytrix",
+          "match": "^#!.*$"
+        }
+      ]
     },
     "comment": {
       "patterns": [
         {
           "name": "comment.block.nytrix",
           "begin": ";\\*",
-          "beginCaptures": { "0": { "name": "punctuation.definition.comment.begin.nytrix" } },
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.begin.nytrix"
+            }
+          },
           "end": "\\*;",
-          "endCaptures": { "0": { "name": "punctuation.definition.comment.end.nytrix" } }
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.end.nytrix"
+            }
+          }
         },
         {
           "name": "comment.line.semicolon.nytrix",
           "begin": ";",
-          "beginCaptures": { "0": { "name": "punctuation.definition.comment.nytrix" } },
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.nytrix"
+            }
+          },
           "end": "$"
+        }
+      ]
+    },
+    "preprocessor": {
+      "patterns": [
+        {
+          "name": "meta.preprocessor.include.nytrix",
+          "match": "^\\s*(#)\\s*(include)\\s+((?:<[^>]+>)|(?:\"[^\"]+\"))",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.directive.nytrix"
+            },
+            "2": {
+              "name": "keyword.control.directive.include.nytrix"
+            },
+            "3": {
+              "name": "string.other.include.nytrix"
+            }
+          }
+        },
+        {
+          "name": "meta.preprocessor.define.nytrix",
+          "match": "^\\s*(#)\\s*(define|link|line)\\b.*$",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.directive.nytrix"
+            },
+            "2": {
+              "name": "keyword.control.directive.nytrix"
+            }
+          }
+        }
+      ]
+    },
+    "attribute": {
+      "patterns": [
+        {
+          "name": "storage.modifier.attribute.nytrix",
+          "match": "@[A-Za-z_][A-Za-z0-9_]*"
         }
       ]
     },
@@ -46,134 +138,713 @@
           "name": "constant.character.escape.nytrix",
           "match": "\\\\(?:[0abfnrtv\\\\'\"n]|x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})"
         },
-        { "name": "invalid.illegal.escape.nytrix", "match": "\\\\." }
+        {
+          "name": "invalid.illegal.escape.nytrix",
+          "match": "\\\\."
+        }
+      ]
+    },
+    "embedded-string": {
+      "patterns": [
+        {
+          "name": "meta.embedded.inline.asm.nytrix",
+          "begin": "(?:\\b(asm|nasm|gas|masm)(\\s*\\(\\s*)|\\b(?:def|mut)\\s+[A-Za-z_][A-Za-z0-9_]*(?:_(?:asm|assembly|disasm|opcode|ops|s)|(?:Asm|Assembly))\\s*=\\s*)([\"'])",
+          "beginCaptures": {
+            "1": {
+              "name": "support.function.builtin.nytrix"
+            },
+            "3": {
+              "name": "punctuation.definition.string.begin.nytrix"
+            }
+          },
+          "end": "\\3",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.nytrix"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#embedded-asm-content"
+            }
+          ]
+        },
+        {
+          "name": "meta.embedded.inline.json.nytrix",
+          "begin": "(?:\\b(?:json|from_json|to_json)\\s*\\(\\s*|\\b(?:def|mut)\\s+[A-Za-z_][A-Za-z0-9_]*_(?:json|jsonc)\\s*=\\s*)([\"'])",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.string.begin.nytrix"
+            }
+          },
+          "end": "\\1",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.nytrix"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#embedded-json-content"
+            }
+          ]
+        },
+        {
+          "name": "meta.embedded.inline.xml.nytrix",
+          "begin": "(?:\\b(?:xml|html|svg)\\s*\\(\\s*|\\b(?:def|mut)\\s+[A-Za-z_][A-Za-z0-9_]*_(?:xml|html|svg)\\s*=\\s*)([\"'])",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.string.begin.nytrix"
+            }
+          },
+          "end": "\\1",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.nytrix"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#embedded-xml-content"
+            }
+          ]
+        },
+        {
+          "name": "meta.embedded.inline.yaml.nytrix",
+          "begin": "(?:\\b(?:yaml)\\s*\\(\\s*|\\b(?:def|mut)\\s+[A-Za-z_][A-Za-z0-9_]*_(?:yaml|yml)\\s*=\\s*)([\"'])",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.string.begin.nytrix"
+            }
+          },
+          "end": "\\1",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.nytrix"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#embedded-yaml-content"
+            }
+          ]
+        },
+        {
+          "name": "meta.embedded.inline.ini.nytrix",
+          "begin": "(?:\\b(?:ini|toml|properties)\\s*\\(\\s*|\\b(?:def|mut)\\s+[A-Za-z_][A-Za-z0-9_]*_(?:ini|toml|properties)\\s*=\\s*)([\"'])",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.string.begin.nytrix"
+            }
+          },
+          "end": "\\1",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.nytrix"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#embedded-ini-content"
+            }
+          ]
+        },
+        {
+          "name": "meta.embedded.inline.sql.nytrix",
+          "begin": "(?:\\b(?:sql)\\s*\\(\\s*|\\b(?:def|mut)\\s+[A-Za-z_][A-Za-z0-9_]*_(?:sql|query)\\s*=\\s*)([\"'])",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.string.begin.nytrix"
+            }
+          },
+          "end": "\\1",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.nytrix"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#embedded-sql-content"
+            }
+          ]
+        },
+        {
+          "name": "meta.embedded.inline.regex.nytrix",
+          "begin": "(?:\\b(?:regex)\\s*\\(\\s*|\\b(?:def|mut)\\s+[A-Za-z_][A-Za-z0-9_]*_(?:regex|re)\\s*=\\s*)([\"'])",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.string.begin.nytrix"
+            }
+          },
+          "end": "\\1",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.nytrix"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#embedded-regex-content"
+            }
+          ]
+        }
+      ]
+    },
+    "embedded-asm-content": {
+      "patterns": [
+        {
+          "include": "#escape"
+        },
+        {
+          "name": "comment.line.asm.nytrix",
+          "match": "(?:;|//).*$"
+        },
+        {
+          "name": "entity.name.label.asm.nytrix",
+          "match": "^\\s*[A-Za-z_.$][A-Za-z0-9_.$]*:"
+        },
+        {
+          "name": "keyword.control.asm.nytrix",
+          "match": "\\b(?:mov|movq|movl|movzx|movsx|lea|add|sub|mul|imul|div|idiv|inc|dec|cmp|test|jmp|je|jne|jg|jge|jl|jle|ja|jae|jb|jbe|call|ret|push|pop|ldr|ldp|ldrb|ldrh|ldrsw|str|stp|adr|adrp|and|orr|eor|xor|bic|lsl|lsr|asr|ror|nop|svc|syscall|int|ud2|db|dw|dd|dq|byte|word|dword|qword|section|global|globl|extern)\\b"
+        },
+        {
+          "name": "variable.language.register.asm.nytrix",
+          "match": "(?:%[A-Za-z][A-Za-z0-9]*|\\$(?:[0-9]+|[A-Za-z_][A-Za-z0-9_]*)|\\b(?:r(?:[0-9]|1[0-5]|ax|bx|cx|dx|si|di|sp|bp)|e(?:ax|bx|cx|dx|si|di|sp|bp)|[abcd][lh]|rip|rsp|rbp|x(?:[0-9]|[12][0-9]|3[01])|w(?:[0-9]|[12][0-9]|3[01])|sp|lr|pc)\\b)"
+        },
+        {
+          "name": "constant.numeric.asm.nytrix",
+          "match": "(?:#-?[0-9]+|-?0x[0-9A-Fa-f]+|\\b-?[0-9]+\\b)"
+        },
+        {
+          "name": "punctuation.separator.asm.nytrix",
+          "match": "[\\[\\](),:]"
+        },
+        {
+          "name": "storage.modifier.directive.asm.nytrix",
+          "match": "\\.[A-Za-z_.$][A-Za-z0-9_.$]*"
+        }
+      ]
+    },
+    "embedded-json-content": {
+      "patterns": [
+        {
+          "include": "#escape"
+        },
+        {
+          "name": "support.type.property-name.json.nytrix",
+          "match": "\\\\\"(?:[^\"\\\\]|\\\\.)*\\\\\"(?=\\s*:)"
+        },
+        {
+          "name": "string.quoted.double.json.nytrix",
+          "match": "\\\\\"(?:[^\"\\\\]|\\\\.)*\\\\\""
+        },
+        {
+          "name": "constant.language.json.nytrix",
+          "match": "\\b(?:true|false|null)\\b"
+        },
+        {
+          "name": "constant.numeric.json.nytrix",
+          "match": "-?\\b\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?\\b"
+        },
+        {
+          "name": "punctuation.separator.dictionary.json.nytrix",
+          "match": "[{}\\[\\],:]"
+        }
+      ]
+    },
+    "embedded-xml-content": {
+      "patterns": [
+        {
+          "include": "#escape"
+        },
+        {
+          "name": "comment.block.xml.nytrix",
+          "begin": "<!--",
+          "end": "-->"
+        },
+        {
+          "name": "entity.name.tag.xml.nytrix",
+          "match": "</?[A-Za-z_:][A-Za-z0-9:._-]*"
+        },
+        {
+          "name": "entity.other.attribute-name.xml.nytrix",
+          "match": "\\b[A-Za-z_:][A-Za-z0-9:._-]*(?=\\s*=)"
+        },
+        {
+          "name": "string.quoted.double.xml.nytrix",
+          "match": "\\\\\"(?:[^\"\\\\]|\\\\.)*\\\\\""
+        },
+        {
+          "name": "constant.character.entity.xml.nytrix",
+          "match": "&[A-Za-z0-9#]+;"
+        },
+        {
+          "name": "punctuation.definition.tag.xml.nytrix",
+          "match": "[<>/=]"
+        }
+      ]
+    },
+    "embedded-yaml-content": {
+      "patterns": [
+        {
+          "include": "#escape"
+        },
+        {
+          "name": "comment.line.yaml.nytrix",
+          "match": "#.*$"
+        },
+        {
+          "name": "keyword.other.mapping.yaml.nytrix",
+          "match": "^[ \\t-]*[A-Za-z_][A-Za-z0-9_.-]*(?=\\s*:)"
+        },
+        {
+          "name": "punctuation.definition.sequence.yaml.nytrix",
+          "match": "^[ \\t]*-"
+        },
+        {
+          "name": "constant.language.yaml.nytrix",
+          "match": "\\b(?:true|false|null|yes|no|on|off)\\b"
+        },
+        {
+          "name": "constant.numeric.yaml.nytrix",
+          "match": "-?\\b\\d+(?:\\.\\d+)?\\b"
+        },
+        {
+          "name": "punctuation.separator.mapping.yaml.nytrix",
+          "match": ":"
+        }
+      ]
+    },
+    "embedded-ini-content": {
+      "patterns": [
+        {
+          "include": "#escape"
+        },
+        {
+          "name": "comment.line.ini.nytrix",
+          "match": "(?:;|#).*$"
+        },
+        {
+          "name": "entity.name.section.ini.nytrix",
+          "match": "^\\s*\\[[^\\]\\n]+\\]"
+        },
+        {
+          "name": "keyword.other.definition.ini.nytrix",
+          "match": "\\b[A-Za-z0-9_.-]+(?=\\s*=)"
+        },
+        {
+          "name": "punctuation.separator.key-value.ini.nytrix",
+          "match": "="
+        }
+      ]
+    },
+    "embedded-sql-content": {
+      "patterns": [
+        {
+          "include": "#escape"
+        },
+        {
+          "name": "keyword.control.sql.nytrix",
+          "match": "\\b(?:select|from|where|join|inner|left|right|full|outer|on|group|by|order|limit|insert|into|values|update|set|delete|create|table|alter|drop|distinct|union|having|case|when|then|else|end|and|or|not|as|desc|asc)\\b"
+        },
+        {
+          "name": "string.quoted.single.sql.nytrix",
+          "match": "'(?:[^'\\\\]|\\\\.)*'"
+        },
+        {
+          "name": "constant.numeric.sql.nytrix",
+          "match": "-?\\b\\d+(?:\\.\\d+)?\\b"
+        },
+        {
+          "name": "punctuation.separator.sql.nytrix",
+          "match": "[(),.;]"
+        }
+      ]
+    },
+    "embedded-regex-content": {
+      "patterns": [
+        {
+          "include": "#escape"
+        },
+        {
+          "name": "keyword.operator.anchor.regex.nytrix",
+          "match": "(?:\\^|\\$|\\\\b|\\\\B)"
+        },
+        {
+          "name": "keyword.operator.quantifier.regex.nytrix",
+          "match": "(?:\\*|\\+|\\?|\\{\\d+(?:,\\d*)?\\})"
+        },
+        {
+          "name": "keyword.operator.alternation.regex.nytrix",
+          "match": "\\|"
+        },
+        {
+          "name": "punctuation.definition.group.regex.nytrix",
+          "match": "[()\\[\\]]"
+        },
+        {
+          "name": "constant.other.character-class.regex.nytrix",
+          "match": "\\\\[dDsSwW]"
+        }
       ]
     },
     "string": {
       "patterns": [
         {
+          "name": "string.interpolated.nytrix",
+          "begin": "\\bf\"",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.nytrix"
+            }
+          },
+          "end": "\"",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.nytrix"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            },
+            {
+              "name": "meta.interpolation.nytrix",
+              "begin": "\\{",
+              "beginCaptures": {
+                "0": {
+                  "name": "punctuation.section.interpolation.begin.nytrix"
+                }
+              },
+              "end": "\\}",
+              "endCaptures": {
+                "0": {
+                  "name": "punctuation.section.interpolation.end.nytrix"
+                }
+              },
+              "patterns": [
+                {
+                  "include": "$self"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "string.interpolated.nytrix",
+          "begin": "\\bf'",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.nytrix"
+            }
+          },
+          "end": "'",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.nytrix"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            },
+            {
+              "name": "meta.interpolation.nytrix",
+              "begin": "\\{",
+              "end": "\\}",
+              "patterns": [
+                {
+                  "include": "$self"
+                }
+              ]
+            }
+          ]
+        },
+        {
           "name": "string.quoted.double.nytrix",
           "begin": "\"",
-          "beginCaptures": { "0": { "name": "punctuation.definition.string.begin.nytrix" } },
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.nytrix"
+            }
+          },
           "end": "\"",
-          "endCaptures": { "0": { "name": "punctuation.definition.string.end.nytrix" } },
-          "patterns": [{ "include": "#escape" }]
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.nytrix"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            }
+          ]
         },
         {
           "name": "string.quoted.single.nytrix",
           "begin": "'",
-          "beginCaptures": { "0": { "name": "punctuation.definition.string.begin.nytrix" } },
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.nytrix"
+            }
+          },
           "end": "'",
-          "endCaptures": { "0": { "name": "punctuation.definition.string.end.nytrix" } },
-          "patterns": [{ "include": "#escape" }]
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.nytrix"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            }
+          ]
         }
       ]
     },
     "number": {
       "patterns": [
-        { "name": "constant.numeric.hex.nytrix", "match": "\\b0[xX][0-9A-Fa-f]+\\b" },
-        { "name": "constant.numeric.octal.nytrix", "match": "\\b0[oO][0-7]+\\b" },
-        { "name": "constant.numeric.binary.nytrix", "match": "\\b0[bB][01]+\\b" },
-        { "name": "constant.numeric.float.nytrix", "match": "\\b[0-9]+\\.[0-9]*([eE][+-]?[0-9]+)?\\b" },
-        { "name": "constant.numeric.float.nytrix", "match": "\\b\\.[0-9]+([eE][+-]?[0-9]+)?\\b" },
-        { "name": "constant.numeric.float.nytrix", "match": "\\b[0-9]+[eE][+-]?[0-9]+\\b" },
-        { "name": "constant.numeric.decimal.nytrix", "match": "\\b[0-9]+\\b" }
+        {
+          "name": "constant.numeric.hex.nytrix",
+          "match": "\\b0[xX][0-9A-Fa-f]+(?:[iu](?:8|16|32|64|128))?\\b"
+        },
+        {
+          "name": "constant.numeric.octal.nytrix",
+          "match": "\\b0[oO][0-7]+(?:[iu](?:8|16|32|64|128))?\\b"
+        },
+        {
+          "name": "constant.numeric.binary.nytrix",
+          "match": "\\b0[bB][01]+(?:[iu](?:8|16|32|64|128))?\\b"
+        },
+        {
+          "name": "constant.numeric.float.nytrix",
+          "match": "\\b(?:[0-9]+\\.[0-9]*|\\.[0-9]+|[0-9]+[eE][+-]?[0-9]+)(?:[eE][+-]?[0-9]+)?(?:f(?:32|64|128))?\\b"
+        },
+        {
+          "name": "constant.numeric.decimal.nytrix",
+          "match": "\\b[0-9]+(?:[iu](?:8|16|32|64|128))?\\b"
+        }
       ]
     },
-
-    "use-import": {
+    "module": {
       "patterns": [
+        {
+          "name": "meta.module.nytrix",
+          "match": "^\\s*(module)\\s+([A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*)",
+          "captures": {
+            "1": {
+              "name": "keyword.control.module.nytrix"
+            },
+            "2": {
+              "name": "entity.name.namespace.nytrix"
+            }
+          }
+        },
         {
           "name": "meta.import.use.nytrix",
           "begin": "\\buse\\b",
-          "beginCaptures": { "0": { "name": "keyword.control.import.nytrix" } },
+          "beginCaptures": {
+            "0": {
+              "name": "keyword.control.import.nytrix"
+            }
+          },
           "end": "$",
           "patterns": [
-            { "name": "support.type.module.nytrix", "match": "[A-Za-z_][A-Za-z0-9_]*" },
-            { "name": "punctuation.accessor.dot.nytrix", "match": "\\." }
+            {
+              "name": "support.type.module.nytrix",
+              "match": "[A-Za-z_][A-Za-z0-9_]*"
+            },
+            {
+              "name": "keyword.control.import.alias.nytrix",
+              "match": "\\bas\\b"
+            },
+            {
+              "name": "punctuation.accessor.dot.nytrix",
+              "match": "\\."
+            },
+            {
+              "name": "keyword.operator.glob.nytrix",
+              "match": "\\*"
+            }
           ]
         }
       ]
     },
-
+    "declaration": {
+      "patterns": [
+        {
+          "name": "meta.function.definition.nytrix",
+          "match": "\\bfn\\s+([A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)?)\\b",
+          "captures": {
+            "0": {
+              "name": "meta.function.definition.nytrix"
+            },
+            "1": {
+              "name": "entity.name.function.nytrix"
+            }
+          }
+        },
+        {
+          "name": "meta.type.declaration.nytrix",
+          "match": "\\b(layout|struct|enum|impl)\\s+([A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)?)",
+          "captures": {
+            "1": {
+              "name": "storage.type.declaration.nytrix"
+            },
+            "2": {
+              "name": "entity.name.type.nytrix"
+            }
+          }
+        },
+        {
+          "name": "meta.operator.declaration.nytrix",
+          "match": "\\b(operator)\\s+([^:=\\n]+)(:)\\s*([A-Za-z_][A-Za-z0-9_?*\\.]*)(\\s*=\\s*)([A-Za-z_][A-Za-z0-9_\\.]*)",
+          "captures": {
+            "1": {
+              "name": "keyword.operator.declaration.nytrix"
+            },
+            "2": {
+              "name": "meta.operator.signature.nytrix"
+            },
+            "3": {
+              "name": "punctuation.separator.type.nytrix"
+            },
+            "4": {
+              "name": "support.type.nytrix"
+            },
+            "6": {
+              "name": "entity.name.function.target.nytrix"
+            }
+          }
+        }
+      ]
+    },
     "keyword": {
       "patterns": [
         {
           "name": "keyword.control.nytrix",
-          "match": "\\b(?:if|else|while|for|in|try|catch|defer|goto|return|break|continue|match|otherwise)\\b"
+          "match": "\\b(?:if|elif|else|while|for|in|try|catch|defer|with|goto|return|break|continue|match|case|otherwise|guard|as)\\b"
+        },
+        {
+          "name": "keyword.other.comptime.nytrix",
+          "match": "\\b(?:comptime|expand|partial|specialize|rewrite|emit|template|derive|generated|diagnostic|rule|fields|exports)\\b"
         },
         {
           "name": "storage.type.nytrix",
-          "match": "\\b(?:fn|lambda|use|define|def|const)\\b"
+          "match": "\\b(?:fn|lambda|def|mut|del|extern|link|macro|export|operator|impl|layout|struct|enum|module|embed|sizeof)\\b"
         }
       ]
     },
     "constant": {
-      "patterns": [{ "name": "constant.language.nytrix", "match": "\\b(?:true|false|nil)\\b" }]
+      "patterns": [
+        {
+          "name": "constant.language.nytrix",
+          "match": "\\b(?:true|false|nil|none)\\b"
+        },
+        {
+          "name": "constant.other.uppercase.nytrix",
+          "match": "\\b[A-Z][A-Z0-9_]{2,}\\b"
+        }
+      ]
+    },
+    "type": {
+      "patterns": [
+        {
+          "name": "support.type.primitive.nytrix",
+          "match": "\\b(?:bool|str|string|ptr|handle|int|float|i8|i16|i32|i64|i128|u8|u16|u32|u64|u128|f32|f64|f128|bytes|list|dict|set|tuple|range|vec2|vec3|vec4|Vector2|Vector3|Vector4)\\b"
+        },
+        {
+          "name": "support.type.pointer.nytrix",
+          "match": "\\?(?:\\*?)[A-Za-z_][A-Za-z0-9_\\.]*|\\*[A-Za-z_][A-Za-z0-9_\\.]*"
+        }
+      ]
     },
     "builtin": {
       "patterns": [
         {
           "name": "support.function.builtin.nytrix",
-          "match": "\\b(?:print|input|len|range|map|filter|reduce|zip|enumerate|type_of|repr_of|is_callable|tuple|list|dict|set|load8|load16|load32|load64|store8|store16|store32|store64|malloc|free|set_idx|get|list_len|list_clone|sort|rt_dlopen|rt_dlsym|rt_syscall)\\b"
+          "match": "\\b(?:print|println|eprint|assert|input|len|range|map|filter|reduce|zip|enumerate|type_of|repr_of|to_str|int|float|bool|is_int|is_float|is_str|is_bool|is_dict|is_list|is_set|is_nil|is_ptr|tuple|list|dict|dict_get|dict_set|set|get|set_idx|append|extend|sort|malloc|free|load8|load16|load32|load64|load32_f32|load64_f64|load_layout|store8|store16|store32|store64|store32_f32|store64_f64|store_layout|__layout_size|__layout_align|__layout_offset|__main|env|rt_dlopen|rt_dlsym|rt_syscall)\\b"
         }
       ]
     },
-    "label": {
-      "patterns": [
-        {
-          "name": "entity.name.label.nytrix",
-          "match": "^\\s*([A-Za-z_][A-Za-z0-9_]*)\\s*:(?!:)",
-          "captures": { "1": { "name": "entity.name.label.nytrix" } }
-        }
-      ]
-    },
-    "function-definition": {
-      "patterns": [
-        {
-          "name": "meta.function.definition.nytrix",
-          "match": "^\\s*fn\\s+([A-Za-z_][A-Za-z0-9_]*)\\b",
-          "captures": {
-            "0": { "name": "meta.function.definition.nytrix" },
-            "1": { "name": "entity.name.function.nytrix" }
-          }
-        }
-      ]
-    },
-    "method-call": {
+    "function": {
       "patterns": [
         {
           "name": "entity.name.function.method.nytrix",
           "match": "\\.([A-Za-z_][A-Za-z0-9_]*)\\s*(?=\\()",
-          "captures": { "1": { "name": "entity.name.function.method.nytrix" } }
-        }
-      ]
-    },
-    "function-call": {
-      "patterns": [
+          "captures": {
+            "1": {
+              "name": "entity.name.function.method.nytrix"
+            }
+          }
+        },
         {
           "name": "entity.name.function.call.nytrix",
           "match": "\\b([A-Za-z_][A-Za-z0-9_]*)\\s*(?=\\()",
-          "captures": { "1": { "name": "entity.name.function.call.nytrix" } }
+          "captures": {
+            "1": {
+              "name": "entity.name.function.call.nytrix"
+            }
+          }
+        },
+        {
+          "name": "entity.name.label.nytrix",
+          "match": "^\\s*([A-Za-z_][A-Za-z0-9_]*)\\s*:(?!:)",
+          "captures": {
+            "1": {
+              "name": "entity.name.label.nytrix"
+            }
+          }
         }
       ]
     },
     "operator": {
       "patterns": [
-        { "name": "keyword.operator.assignment.nytrix", "match": "(?:=|\\+=|\\-=|\\*=|\\/=|%=|&=|\\|=|\\^=|<<=|>>=)" },
-        { "name": "keyword.operator.logical.nytrix", "match": "(?:&&|\\|\\|)" },
-        { "name": "keyword.operator.comparison.nytrix", "match": "(?:==|!=|<=|>=|<|>)" },
-        { "name": "keyword.operator.bitwise.nytrix", "match": "(?:~|&|\\||\\^|<<|>>)" },
-        { "name": "keyword.operator.arithmetic.nytrix", "match": "(?:\\+|\\-|\\*|\\/|%)" },
-        { "name": "keyword.operator.other.nytrix", "match": "(?:!|\\?|:|\\.|\\.\\.)" }
+        {
+          "name": "keyword.operator.assignment.nytrix",
+          "match": "(?:\\+=|\\-=|\\*=|\\/=|%=|&=|\\|=|\\^=|<<=|>>=|=)"
+        },
+        {
+          "name": "keyword.operator.logical.nytrix",
+          "match": "(?:&&|\\|\\||!)"
+        },
+        {
+          "name": "keyword.operator.comparison.nytrix",
+          "match": "(?:==|!=|<=|>=|<|>)"
+        },
+        {
+          "name": "keyword.operator.bitwise.nytrix",
+          "match": "(?:~|&|\\||\\^|<<|>>)"
+        },
+        {
+          "name": "keyword.operator.arithmetic.nytrix",
+          "match": "(?:\\+|\\-|\\*|\\/|%)"
+        },
+        {
+          "name": "keyword.operator.other.nytrix",
+          "match": "(?:\\?\\?|\\?\\.|\\?|:|\\.|\\.\\.)"
+        }
       ]
     },
     "punctuation": {
       "patterns": [
-        { "name": "punctuation.separator.comma.nytrix", "match": "," },
-        { "name": "punctuation.brackets.round.nytrix", "match": "[()]" },
-        { "name": "punctuation.brackets.square.nytrix", "match": "[\\[\\]]" },
-        { "name": "punctuation.brackets.curly.nytrix", "match": "[{}]" }
+        {
+          "name": "punctuation.separator.comma.nytrix",
+          "match": ","
+        },
+        {
+          "name": "punctuation.brackets.round.nytrix",
+          "match": "[()]"
+        },
+        {
+          "name": "punctuation.brackets.square.nytrix",
+          "match": "[\\[\\]]"
+        },
+        {
+          "name": "punctuation.brackets.curly.nytrix",
+          "match": "[{}]"
+        }
       ]
     }
   }

@@ -1,0 +1,164 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Nynth Shape",
+  "fileTypes": [
+    "nshape"
+  ],
+  "scopeName": "source.nynth-shape",
+  "patterns": [
+    {
+      "include": "#comment"
+    },
+    {
+      "include": "#source-ny"
+    },
+    {
+      "include": "#source-c"
+    },
+    {
+      "include": "#shape"
+    },
+    {
+      "include": "#keyword"
+    },
+    {
+      "include": "#string"
+    },
+    {
+      "include": "#number"
+    },
+    {
+      "include": "#identifier"
+    },
+    {
+      "include": "#punctuation"
+    }
+  ],
+  "repository": {
+    "comment": {
+      "patterns": [
+        {
+          "name": "comment.line.number-sign.nynth-shape",
+          "match": "^\\s*#.*$"
+        },
+        {
+          "name": "comment.line.double-slash.nynth-shape",
+          "match": "//.*$"
+        }
+      ]
+    },
+    "source-ny": {
+      "patterns": [
+        {
+          "name": "meta.embedded.block.nytrix.nynth-shape",
+          "begin": "^(\\s*)(source)\\s+([A-Za-z0-9_.-]+)\\s+(<<)'NY'\\s*$",
+          "beginCaptures": {
+            "2": {
+              "name": "keyword.control.source.nynth-shape"
+            },
+            "3": {
+              "name": "entity.name.section.nynth-shape"
+            },
+            "4": {
+              "name": "punctuation.definition.heredoc.nynth-shape"
+            }
+          },
+          "end": "^\\s*NY\\s*$",
+          "patterns": [
+            {
+              "include": "source.nytrix"
+            }
+          ]
+        }
+      ]
+    },
+    "source-c": {
+      "patterns": [
+        {
+          "name": "meta.embedded.block.c.nynth-shape",
+          "begin": "^(\\s*)(source)\\s+([A-Za-z0-9_.-]+)\\s+(<<)'C'\\s*$",
+          "beginCaptures": {
+            "2": {
+              "name": "keyword.control.source.nynth-shape"
+            },
+            "3": {
+              "name": "entity.name.section.nynth-shape"
+            },
+            "4": {
+              "name": "punctuation.definition.heredoc.nynth-shape"
+            }
+          },
+          "end": "^\\s*C\\s*$",
+          "patterns": [
+            {
+              "include": "source.c"
+            }
+          ]
+        }
+      ]
+    },
+    "shape": {
+      "patterns": [
+        {
+          "name": "meta.shape.declaration.nynth-shape",
+          "match": "\\b(shape)\\s+([A-Za-z0-9_.-]+)",
+          "captures": {
+            "1": {
+              "name": "keyword.declaration.shape.nynth-shape"
+            },
+            "2": {
+              "name": "entity.name.type.shape.nynth-shape"
+            }
+          }
+        }
+      ]
+    },
+    "keyword": {
+      "patterns": [
+        {
+          "name": "keyword.other.nynth-shape",
+          "match": "\\b(family|generator|features|weights|balanced|optimizer|memory|strings|state|fast_rank|template|expect|source)\\b"
+        }
+      ]
+    },
+    "string": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.nynth-shape",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.nynth-shape",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "number": {
+      "patterns": [
+        {
+          "name": "constant.numeric.nynth-shape",
+          "match": "\\b-?\\d+(?:\\.\\d+)?\\b"
+        }
+      ]
+    },
+    "identifier": {
+      "patterns": [
+        {
+          "name": "variable.other.symbol.nynth-shape",
+          "match": "\\b[A-Za-z_][A-Za-z0-9_.-]*\\b"
+        }
+      ]
+    },
+    "punctuation": {
+      "patterns": [
+        {
+          "name": "punctuation.section.braces.nynth-shape",
+          "match": "[{}\\[\\](),:]"
+        }
+      ]
+    }
+  }
+}
