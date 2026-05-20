@@ -1,1 +1,6 @@
 *.vsix
+node_modules/
+.vscode-test/
+test/.artifacts/
+test/__pycache__/
+test/.sandbox/
