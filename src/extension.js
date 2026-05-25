@@ -161,7 +161,10 @@ function activate(context) {
     new NytrixSignatureProvider(symbolIndex),
     "(", ","
   ));
-  context.subscriptions.push(vscode.workspace.onDidSaveTextDocument((document) => symbolIndex.updateDocument(document)));
+  context.subscriptions.push(vscode.workspace.onDidSaveTextDocument((document) => {
+    symbolIndex.updateDocument(document);
+    symbolIndex.refreshCompilerSymbols(document);
+  }));
   context.subscriptions.push(vscode.workspace.onDidChangeTextDocument((event) => {
     symbolIndex.updateDocument(event.document);
     if (isNytrixDocument(event.document)) {
@@ -1663,6 +1666,151 @@ function captureProcess(command, args, cwd) {
   });
 }
 
+function parseJsonText(text) {
+  try {
+    return JSON.parse(String(text || ""));
+  } catch {
+    return null;
+  }
+}
+
+function documentTextLength(document) {
+  try {
+    return typeof document.getText === "function" ? document.getText().length : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function documentStamp(document) {
+  return `${document && document.version != null ? document.version : "no-version"}:${documentTextLength(document)}`;
+}
+
+function compilerSymbolKind(kind) {
+  const value = String(kind || "");
+  if (value === "extern" || value === "macro") {
+    return "fn";
+  }
+  if (value === "use") {
+    return "module";
+  }
+  if (value === "define") {
+    return "def";
+  }
+  if (value === "del") {
+    return "mut";
+  }
+  return value || "fn";
+}
+
+function symbolNeedle(name, kind) {
+  const raw = String(name || "");
+  if (kind === "operator") {
+    return raw.replace(/^operator\s+/, "").trim() || raw;
+  }
+  if (kind === "module" && raw.includes(".")) {
+    return raw;
+  }
+  return raw.includes(".") ? raw.split(".").pop() : raw;
+}
+
+function documentLineText(document, row) {
+  if (!document || row < 0 || row >= document.lineCount) {
+    return "";
+  }
+  try {
+    return document.lineAt(row).text || "";
+  } catch {
+    return "";
+  }
+}
+
+function symbolRangeFromCompiler(document, raw) {
+  const row = Math.min(
+    Math.max(0, Number(raw && raw.line ? raw.line : 1) - 1),
+    Math.max(0, (document && document.lineCount ? document.lineCount : 1) - 1)
+  );
+  const text = documentLineText(document, row);
+  const kind = String(raw && raw.kind ? raw.kind : "");
+  const name = String(raw && raw.name ? raw.name : "");
+  const needles = [symbolNeedle(name, kind), name].filter(Boolean);
+  let start = -1;
+  let width = 1;
+  for (const needle of needles) {
+    start = text.indexOf(needle);
+    if (start >= 0) {
+      width = Math.max(needle.length, 1);
+      break;
+    }
+  }
+  if (start < 0) {
+    start = Math.max(0, Math.min(Number(raw && raw.col ? raw.col : 1) - 1, text.length));
+    width = Math.max(1, Math.min(String(name || "symbol").length, Math.max(1, text.length - start)));
+  }
+  return new vscode.Range(row, start, row, Math.min(text.length, start + width));
+}
+
+function compilerArtifactToSymbols(document, artifact) {
+  if (!artifact || !Array.isArray(artifact.symbols)) {
+    return null;
+  }
+  const symbols = [];
+  for (const raw of artifact.symbols) {
+    if (!raw || !raw.name) {
+      continue;
+    }
+    const kind = compilerSymbolKind(raw.kind);
+    const range = symbolRangeFromCompiler(document, raw);
+    symbols.push({
+      name: String(raw.name),
+      kind,
+      uri: document.uri,
+      range,
+      selectionRange: range,
+      line: documentLineText(document, range.start.line).trim(),
+      signature: String(raw.signature || raw.name),
+      doc: String(raw.doc || ""),
+      params: Array.isArray(raw.params) ? raw.params : [],
+      output: raw.return ? String(raw.return) : ""
+    });
+  }
+  return symbols;
+}
+
+async function parseCompilerArtifactForDocument(document) {
+  if (!document || document.uri.scheme !== "file" || document.isDirty !== false) {
+    return null;
+  }
+  const ny = tools(extensionContext).ny;
+  if (!ny || !ny.path) {
+    return null;
+  }
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "nytrix-vscode-parse-"));
+  const artifactPath = path.join(tempDir, "parse-artifact.json");
+  try {
+    const args = [
+      "--color=never",
+      "--stop-after=parse",
+      "--emit-shapes",
+      `--emit-artifact=${artifactPath}`,
+      "-emit-only",
+      document.uri.fsPath
+    ];
+    const result = await captureProcess(ny.path, args, workspaceCwd(document));
+    if (result.code !== 0 || !fs.existsSync(artifactPath)) {
+      return null;
+    }
+    const artifact = parseJsonText(fs.readFileSync(artifactPath, "utf8"));
+    return artifact && Array.isArray(artifact.symbols) ? artifact : null;
+  } finally {
+    try {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    } catch {
+      /* best effort temp cleanup */
+    }
+  }
+}
+
 function shouldRevealOutput(options, phase, exitCode = 0) {
   const reveal = options.reveal || cfg().get("output.reveal", "errors");
   if (phase === "start") {
@@ -1811,12 +1959,8 @@ function parseDiagnosticDetail(line) {
 }
 
 function parseAnalyzeJson(text) {
-  try {
-    const parsed = JSON.parse(String(text || ""));
-    return parsed && Array.isArray(parsed.issues) ? parsed : null;
-  } catch {
-    return null;
-  }
+  const parsed = parseJsonText(text);
+  return parsed && Array.isArray(parsed.issues) ? parsed : null;
 }
 
 function publishDiagnostics(kind, document, text, code) {
@@ -2593,6 +2737,9 @@ async function findDefinitionByName(index = workspaceSymbolIndex) {
   if (query === undefined) {
     return;
   }
+  if (editor && editor.document) {
+    await index.ensureDocument(editor.document);
+  }
   const symbols = await index.searchSymbols(query, currentUri);
   if (!symbols.length) {
     vscode.window.showInformationMessage(`No Nytrix definition found for '${query}'.`);
@@ -2620,6 +2767,7 @@ async function findDefinitionByName(index = workspaceSymbolIndex) {
 class NytrixSymbolIndex {
   constructor() {
     this.docs = new Map();
+    this.compilerPending = new Map();
     this.workspaceReady = false;
     this.watcher = vscode.workspace && typeof vscode.workspace.createFileSystemWatcher === "function"
       ? vscode.workspace.createFileSystemWatcher("**/*.ny")
@@ -2651,6 +2799,7 @@ class NytrixSymbolIndex {
       try {
         const document = await vscode.workspace.openTextDocument(uri);
         this.updateDocument(document);
+        this.refreshCompilerSymbols(document);
       } catch {}
     }));
   }
@@ -2659,6 +2808,17 @@ class NytrixSymbolIndex {
     if (!isNytrixDocument(document) || document.uri.scheme !== "file") {
       return;
     }
+    const symbols = this.parseLocalSymbols(document);
+    this.docs.set(document.uri.toString(), {
+      uri: document.uri,
+      symbols,
+      text: document.getText(),
+      source: "local",
+      stamp: documentStamp(document)
+    });
+  }
+
+  parseLocalSymbols(document) {
     const symbols = [];
     const lines = document.getText().split(/\r?\n/);
     for (let i = 0; i < lines.length; i++) {
@@ -2690,13 +2850,65 @@ class NytrixSymbolIndex {
         break;
       }
     }
-    this.docs.set(document.uri.toString(), { uri: document.uri, symbols, text: document.getText() });
+    return symbols;
+  }
+
+  async refreshCompilerSymbols(document) {
+    if (!isNytrixDocument(document) || document.uri.scheme !== "file" || document.isDirty !== false) {
+      return null;
+    }
+    const key = document.uri.toString();
+    const stamp = documentStamp(document);
+    const current = this.docs.get(key);
+    if (current && current.source === "compiler" && current.stamp === stamp) {
+      return current.symbols;
+    }
+    const pendingKey = `${key}:${stamp}`;
+    if (this.compilerPending.has(pendingKey)) {
+      return this.compilerPending.get(pendingKey);
+    }
+    const pending = (async () => {
+      const artifact = await parseCompilerArtifactForDocument(document);
+      const symbols = compilerArtifactToSymbols(document, artifact);
+      if (symbols) {
+        this.docs.set(key, {
+          uri: document.uri,
+          symbols,
+          text: document.getText(),
+          source: "compiler",
+          stamp
+        });
+        return symbols;
+      }
+      return current ? current.symbols : null;
+    })().finally(() => {
+      this.compilerPending.delete(pendingKey);
+    });
+    this.compilerPending.set(pendingKey, pending);
+    return pending;
+  }
+
+  async ensureDocument(document) {
+    if (!isNytrixDocument(document) || document.uri.scheme !== "file") {
+      return [];
+    }
+    const key = document.uri.toString();
+    const stamp = documentStamp(document);
+    const current = this.docs.get(key);
+    if (!current || current.stamp !== stamp) {
+      this.updateDocument(document);
+    }
+    if (document.isDirty === false) {
+      await this.refreshCompilerSymbols(document);
+    }
+    return (this.docs.get(key) || { symbols: [] }).symbols;
   }
 
   async updateUri(uri) {
     try {
       const document = await vscode.workspace.openTextDocument(uri);
       this.updateDocument(document);
+      await this.refreshCompilerSymbols(document);
     } catch {}
   }
 
@@ -2826,7 +3038,7 @@ class NytrixDefinitionProvider {
     if (lspOwnsLanguageFeatures()) {
       return null;
     }
-    this.index.updateDocument(document);
+    await this.index.ensureDocument(document);
     const { word } = wordAt(document, position);
     if (!word) {
       return null;
@@ -2845,7 +3057,7 @@ class NytrixReferenceProvider {
     if (lspOwnsLanguageFeatures()) {
       return null;
     }
-    this.index.updateDocument(document);
+    await this.index.ensureDocument(document);
     const { word } = wordAt(document, position);
     return word ? this.index.findReferences(word) : [];
   }
@@ -2857,7 +3069,7 @@ class NytrixHoverProvider {
     if (lspOwnsLanguageFeatures()) {
       return null;
     }
-    this.index.updateDocument(document);
+    await this.index.ensureDocument(document);
     const { word, range } = wordAt(document, position);
     if (!word) {
       return null;
@@ -2872,11 +3084,12 @@ class NytrixHoverProvider {
 
 class NytrixDocumentSymbolProvider {
   constructor(index) { this.index = index; }
-  provideDocumentSymbols(document) {
+  async provideDocumentSymbols(document) {
     if (lspOwnsLanguageFeatures()) {
       return null;
     }
-    return this.index.documentSymbols(document).map((s) => new vscode.DocumentSymbol(
+    const symbols = await this.index.ensureDocument(document);
+    return symbols.map((s) => new vscode.DocumentSymbol(
       s.name,
       s.signature,
       symbolKind(s.kind),
@@ -2906,7 +3119,7 @@ class NytrixCompletionProvider {
     if (lspOwnsLanguageFeatures()) {
       return null;
     }
-    this.index.updateDocument(document);
+    await this.index.ensureDocument(document);
     const items = [];
     for (const kw of NYTRIX_KEYWORDS) {
       items.push(new vscode.CompletionItem(kw, vscode.CompletionItemKind.Keyword));
@@ -2930,7 +3143,7 @@ class NytrixSignatureProvider {
     if (lspOwnsLanguageFeatures()) {
       return null;
     }
-    this.index.updateDocument(document);
+    await this.index.ensureDocument(document);
     const line = document.lineAt(position.line).text.slice(0, position.character);
     const match = line.match(/([A-Za-z_][A-Za-z0-9_.]*)\s*\([^()]*$/);
     if (!match) {
@@ -3115,6 +3328,9 @@ module.exports = {
     withDwarfVersion,
     fuzzySymbolScore,
     findDefinitionByName,
-    runtimeSuitePath
+    runtimeSuitePath,
+    compilerArtifactToSymbols,
+    parseJsonText,
+    symbolRangeFromCompiler
   }
 };

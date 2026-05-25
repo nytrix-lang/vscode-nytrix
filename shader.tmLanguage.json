@@ -1,0 +1,220 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Nytrix Shader",
+  "fileTypes": [
+    "glsl",
+    "vert",
+    "frag",
+    "geom",
+    "comp",
+    "wgsl",
+    "hlsl",
+    "metal"
+  ],
+  "scopeName": "source.nytrix-shader",
+  "patterns": [
+    {
+      "include": "#comment"
+    },
+    {
+      "include": "#preprocessor"
+    },
+    {
+      "include": "#string"
+    },
+    {
+      "include": "#number"
+    },
+    {
+      "include": "#keyword"
+    },
+    {
+      "include": "#type"
+    },
+    {
+      "include": "#builtin"
+    },
+    {
+      "include": "#function"
+    },
+    {
+      "include": "#operator"
+    },
+    {
+      "include": "#punctuation"
+    }
+  ],
+  "repository": {
+    "comment": {
+      "patterns": [
+        {
+          "name": "comment.block.shader",
+          "begin": "/\\*",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.begin.shader"
+            }
+          },
+          "end": "\\*/",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.end.shader"
+            }
+          }
+        },
+        {
+          "name": "comment.line.double-slash.shader",
+          "begin": "//",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.shader"
+            }
+          },
+          "end": "$"
+        }
+      ]
+    },
+    "preprocessor": {
+      "patterns": [
+        {
+          "name": "meta.preprocessor.shader",
+          "match": "^\\s*(#)\\s*([A-Za-z_][A-Za-z0-9_]*)\\b.*$",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.directive.shader"
+            },
+            "2": {
+              "name": "keyword.control.directive.shader"
+            }
+          }
+        }
+      ]
+    },
+    "string": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.shader",
+          "begin": "\"",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.shader"
+            }
+          },
+          "end": "(?<!\\\\)\"",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.shader"
+            }
+          },
+          "patterns": [
+            {
+              "name": "constant.character.escape.shader",
+              "match": "\\\\."
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.single.shader",
+          "begin": "'",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.shader"
+            }
+          },
+          "end": "(?<!\\\\)'",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.shader"
+            }
+          },
+          "patterns": [
+            {
+              "name": "constant.character.escape.shader",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "number": {
+      "patterns": [
+        {
+          "name": "constant.numeric.hex.shader",
+          "match": "\\b0[xX][0-9A-Fa-f]+[uU]?\\b"
+        },
+        {
+          "name": "constant.numeric.float.shader",
+          "match": "\\b(?:[0-9]+\\.[0-9]*|\\.[0-9]+|[0-9]+[eE][+-]?[0-9]+)(?:[eE][+-]?[0-9]+)?[fFuUhH]?\\b"
+        },
+        {
+          "name": "constant.numeric.integer.shader",
+          "match": "\\b[0-9]+[uU]?\\b"
+        }
+      ]
+    },
+    "keyword": {
+      "patterns": [
+        {
+          "name": "keyword.control.shader",
+          "match": "\\b(?:if|else|for|while|do|switch|case|default|break|continue|return|discard)\\b"
+        },
+        {
+          "name": "storage.type.shader",
+          "match": "\\b(?:struct|typedef|class|namespace|using|template|fn|let|var|override|alias|kernel|vertex|fragment|compute)\\b"
+        },
+        {
+          "name": "storage.modifier.shader",
+          "match": "\\b(?:const|uniform|varying|attribute|in|out|inout|layout|precision|highp|mediump|lowp|centroid|flat|smooth|noperspective|patch|sample|subroutine|buffer|shared|coherent|volatile|restrict|readonly|writeonly|device|thread|threadgroup|constant|constexpr|enable|requires)\\b"
+        },
+        {
+          "name": "constant.language.shader",
+          "match": "\\b(?:true|false|null|NULL)\\b"
+        }
+      ]
+    },
+    "type": {
+      "patterns": [
+        {
+          "name": "support.type.shader",
+          "match": "\\b(?:void|bool|int|uint|float|double|half|fixed|vec[234]|dvec[234]|bvec[234]|ivec[234]|uvec[234]|mat[234](?:x[234])?|float[234](?:x[234])?|half[234]|int[234]|uint[234]|f16|f32|i32|u32|atomic|sampler(?:1D|2D|3D|Cube|2DArray|CubeArray)?|texture(?:1D|2D|3D|Cube)?|texture_(?:1d|2d|3d|cube)|texture_storage_2d|RWTexture2D|RWBuffer)\\b"
+        }
+      ]
+    },
+    "builtin": {
+      "patterns": [
+        {
+          "name": "support.variable.builtin.shader",
+          "match": "\\b(?:gl_Position|gl_PointSize|gl_FragCoord|gl_FragColor|gl_FrontFacing|gl_VertexID|gl_InstanceID|SV_Position|POSITION|COLOR|TEXCOORD|NORMAL)\\b"
+        },
+        {
+          "name": "support.function.builtin.shader",
+          "match": "\\b(?:texture|textureLod|textureGrad|textureProj|textureSize|textureLoad|textureStore|textureSample|textureSampleLevel|sin|cos|tan|asin|acos|atan|pow|exp|log|sqrt|inversesqrt|abs|sign|floor|ceil|round|fract|mod|min|max|clamp|mix|lerp|step|smoothstep|length|distance|dot|cross|normalize|reflect|refract|faceforward|matrixCompMult|transpose|inverse|dFdx|dFdy|fwidth|ddx|ddy|saturate)\\b"
+        }
+      ]
+    },
+    "function": {
+      "patterns": [
+        {
+          "name": "entity.name.function.shader",
+          "match": "\\b[A-Za-z_][A-Za-z0-9_]*(?=\\s*\\()"
+        }
+      ]
+    },
+    "operator": {
+      "patterns": [
+        {
+          "name": "keyword.operator.shader",
+          "match": "<<=|>>=|\\+\\+|--|==|!=|<=|>=|&&|\\|\\||<<|>>|\\+=|-=|\\*=|/=|%=|&=|\\|=|\\^=|[+\\-*/%=!<>|&^~?:.]"
+        }
+      ]
+    },
+    "punctuation": {
+      "patterns": [
+        {
+          "name": "punctuation.separator.shader",
+          "match": "[()[\\]{};,]"
+        }
+      ]
+    }
+  }
+}
