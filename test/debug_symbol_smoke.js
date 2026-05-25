@@ -253,6 +253,19 @@ async function main() {
   const index = new extension.__test.NytrixSymbolIndex();
   index.updateDocument(current);
   index.updateDocument(std);
+  const compilerSymbols = extension.__test.compilerArtifactToSymbols(current, {
+    symbols: [{
+      kind: "fn",
+      name: "local_sum",
+      line: 1,
+      col: 1,
+      signature: "fn local_sum(any: a, any: b)",
+      doc: "Adds two values."
+    }]
+  });
+  assert.strictEqual(compilerSymbols.length, 1, "compiler symbol artifact should map to index symbols");
+  assert.strictEqual(compilerSymbols[0].range.start.line, 0, "compiler symbol line should become zero-based");
+  assert.strictEqual(compilerSymbols[0].range.start.character, 3, "compiler symbol range should select the function name");
   const matches = await index.searchSymbols("local_sum", current.uri.toString());
   assert(matches.length >= 2, "expected fuzzy symbol matches");
   assert.strictEqual(matches[0].name, "local_sum", "current-file exact match should rank first");

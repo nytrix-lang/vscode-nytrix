@@ -6,7 +6,7 @@
   "patterns": [
     {
       "name": "markup.fenced_code.block.markdown meta.embedded.block.nytrix",
-      "begin": "(^|\\G)(\\s{0,3})(`{3,}|~{3,})\\s*([nN][yY](?:[tT][rR][iI][xX])?)\\s*$",
+      "begin": "(^|\\G)(\\s{0,3})(`{3,}|~{3,})\\s*(?:\\{?\\.?)?([nN][yY](?:[tT][rR][iI][xX])?|[nN][yY][nN][tT][hH])\\}?(?:\\s+[^`~]*)?$",
       "beginCaptures": {
         "3": {
           "name": "punctuation.definition.markdown"
@@ -29,7 +29,7 @@
     },
     {
       "name": "markup.fenced_code.block.markdown meta.embedded.block.nynth-shape",
-      "begin": "(^|\\G)(\\s{0,3})(`{3,}|~{3,})\\s*([nN][sS][hH][aA][pP][eE])\\s*$",
+      "begin": "(^|\\G)(\\s{0,3})(`{3,}|~{3,})\\s*(?:\\{?\\.?)?([nN](?:[yY][nN][tT][hH][-_])?[sS][hH][aA][pP][eE])\\}?(?:\\s+[^`~]*)?$",
       "beginCaptures": {
         "3": {
           "name": "punctuation.definition.markdown"
@@ -47,6 +47,29 @@
       "patterns": [
         {
           "include": "source.nynth-shape"
+        }
+      ]
+    },
+    {
+      "name": "markup.fenced_code.block.markdown meta.embedded.block.shader",
+      "begin": "(^|\\G)(\\s{0,3})(`{3,}|~{3,})\\s*(?:\\{?\\.?)?([gG][lL][sS][lL]|[wW][gG][sS][lL]|[hH][lL][sS][lL]|[mM][sS][lL]|[mM][eE][tT][aA][lL]|[sS][hH][aA][dD][eE][rR]|[fF][rR][aA][gG](?:[mM][eE][nN][tT])?|[vV][eE][rR][tT](?:[eE][xX])?|[gG][eE][oO][mM](?:[eE][tT][rR][yY])?|[cC][oO][mM][pP](?:[uU][tT][eE])?|[tT][eE][sS][cC]|[tT][eE][sS][eE])\\}?(?:\\s+[^`~]*)?$",
+      "beginCaptures": {
+        "3": {
+          "name": "punctuation.definition.markdown"
+        },
+        "4": {
+          "name": "fenced_code.block.language.shader"
+        }
+      },
+      "end": "(^|\\G)(\\s{0,3})(\\3)\\s*$",
+      "endCaptures": {
+        "3": {
+          "name": "punctuation.definition.markdown"
+        }
+      },
+      "patterns": [
+        {
+          "include": "source.nytrix-shader"
         }
       ]
     }

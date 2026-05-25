@@ -147,6 +147,46 @@
     "embedded-string": {
       "patterns": [
         {
+          "name": "meta.embedded.inline.shader.nytrix",
+          "begin": "(?:\\b(?:shader|glsl|wgsl|hlsl|msl|metal)\\s*\\(\\s*|\\b(?:def|mut)\\s+[A-Za-z_][A-Za-z0-9_]*_(?:shader|glsl|wgsl|hlsl|msl|metal|frag|vert)\\s*=\\s*)(\"\"\"|''')",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.string.begin.nytrix"
+            }
+          },
+          "end": "\\1",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.nytrix"
+            }
+          },
+          "patterns": [
+            {
+              "include": "source.nytrix-shader"
+            }
+          ]
+        },
+        {
+          "name": "meta.embedded.inline.shader.nytrix",
+          "begin": "(?:\\b(?:shader|glsl|wgsl|hlsl|msl|metal)\\s*\\(\\s*|\\b(?:def|mut)\\s+[A-Za-z_][A-Za-z0-9_]*_(?:shader|glsl|wgsl|hlsl|msl|metal|frag|vert)\\s*=\\s*)([\"'])",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.string.begin.nytrix"
+            }
+          },
+          "end": "(?<!\\\\)\\1",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.nytrix"
+            }
+          },
+          "patterns": [
+            {
+              "include": "source.nytrix-shader"
+            }
+          ]
+        },
+        {
           "name": "meta.embedded.inline.asm.nytrix",
           "begin": "(?:\\b(asm|nasm|gas|masm)(\\s*\\(\\s*)|\\b(?:def|mut)\\s+[A-Za-z_][A-Za-z0-9_]*(?:_(?:asm|assembly|disasm|opcode|ops|s)|(?:Asm|Assembly))\\s*=\\s*)([\"'])",
           "beginCaptures": {
@@ -157,7 +197,7 @@
               "name": "punctuation.definition.string.begin.nytrix"
             }
           },
-          "end": "\\3",
+          "end": "(?<!\\\\)\\3",
           "endCaptures": {
             "0": {
               "name": "punctuation.definition.string.end.nytrix"
@@ -177,7 +217,7 @@
               "name": "punctuation.definition.string.begin.nytrix"
             }
           },
-          "end": "\\1",
+          "end": "(?<!\\\\)\\1",
           "endCaptures": {
             "0": {
               "name": "punctuation.definition.string.end.nytrix"
@@ -197,7 +237,7 @@
               "name": "punctuation.definition.string.begin.nytrix"
             }
           },
-          "end": "\\1",
+          "end": "(?<!\\\\)\\1",
           "endCaptures": {
             "0": {
               "name": "punctuation.definition.string.end.nytrix"
@@ -217,7 +257,7 @@
               "name": "punctuation.definition.string.begin.nytrix"
             }
           },
-          "end": "\\1",
+          "end": "(?<!\\\\)\\1",
           "endCaptures": {
             "0": {
               "name": "punctuation.definition.string.end.nytrix"
@@ -237,7 +277,7 @@
               "name": "punctuation.definition.string.begin.nytrix"
             }
           },
-          "end": "\\1",
+          "end": "(?<!\\\\)\\1",
           "endCaptures": {
             "0": {
               "name": "punctuation.definition.string.end.nytrix"
@@ -257,7 +297,7 @@
               "name": "punctuation.definition.string.begin.nytrix"
             }
           },
-          "end": "\\1",
+          "end": "(?<!\\\\)\\1",
           "endCaptures": {
             "0": {
               "name": "punctuation.definition.string.end.nytrix"
@@ -277,7 +317,7 @@
               "name": "punctuation.definition.string.begin.nytrix"
             }
           },
-          "end": "\\1",
+          "end": "(?<!\\\\)\\1",
           "endCaptures": {
             "0": {
               "name": "punctuation.definition.string.end.nytrix"
@@ -492,6 +532,106 @@
     "string": {
       "patterns": [
         {
+          "name": "string.interpolated.triple.double.nytrix",
+          "begin": "\\bf\"\"\"",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.nytrix"
+            }
+          },
+          "end": "\"\"\"",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.nytrix"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            },
+            {
+              "name": "meta.interpolation.nytrix",
+              "begin": "\\{",
+              "end": "\\}",
+              "patterns": [
+                {
+                  "include": "$self"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "string.interpolated.triple.single.nytrix",
+          "begin": "\\bf'''",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.nytrix"
+            }
+          },
+          "end": "'''",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.nytrix"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            },
+            {
+              "name": "meta.interpolation.nytrix",
+              "begin": "\\{",
+              "end": "\\}",
+              "patterns": [
+                {
+                  "include": "$self"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.triple.double.nytrix",
+          "begin": "\"\"\"",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.nytrix"
+            }
+          },
+          "end": "\"\"\"",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.nytrix"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.triple.single.nytrix",
+          "begin": "'''",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.nytrix"
+            }
+          },
+          "end": "'''",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.nytrix"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            }
+          ]
+        },
+        {
           "name": "string.interpolated.nytrix",
           "begin": "\\bf\"",
           "beginCaptures": {
@@ -499,7 +639,7 @@
               "name": "punctuation.definition.string.begin.nytrix"
             }
           },
-          "end": "\"",
+          "end": "(?<!\\\\)\"",
           "endCaptures": {
             "0": {
               "name": "punctuation.definition.string.end.nytrix"
@@ -539,7 +679,7 @@
               "name": "punctuation.definition.string.begin.nytrix"
             }
           },
-          "end": "'",
+          "end": "(?<!\\\\)'",
           "endCaptures": {
             "0": {
               "name": "punctuation.definition.string.end.nytrix"
@@ -569,7 +709,7 @@
               "name": "punctuation.definition.string.begin.nytrix"
             }
           },
-          "end": "\"",
+          "end": "(?<!\\\\)\"",
           "endCaptures": {
             "0": {
               "name": "punctuation.definition.string.end.nytrix"
@@ -589,7 +729,7 @@
               "name": "punctuation.definition.string.begin.nytrix"
             }
           },
-          "end": "'",
+          "end": "(?<!\\\\)'",
           "endCaptures": {
             "0": {
               "name": "punctuation.definition.string.end.nytrix"

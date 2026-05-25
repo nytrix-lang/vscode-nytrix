@@ -2,7 +2,7 @@
   "name": "nytrix",
   "icon": "logo.png",
   "publisher": "x3ric",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "displayName": "Nytrix",
   "description": "Nytrix language support: syntax, LSP diagnostics, run/debug, and tooling.",
   "categories": [
@@ -31,8 +31,10 @@
     "snippets/**",
     "language-configuration.json",
     "nshape-language-configuration.json",
+    "shader-language-configuration.json",
     "nytrix.tmLanguage.json",
     "nshape.tmLanguage.json",
+    "shader.tmLanguage.json",
     "markdown-nytrix.tmLanguage.json",
     "README.md",
     "DETAILS.md",
@@ -48,6 +50,7 @@
   "activationEvents": [
     "onLanguage:nytrix",
     "onLanguage:nynth-shape",
+    "onLanguage:nytrix-shader",
     "onCommand:nytrix.runFile",
     "onCommand:nytrix.showActions",
     "onCommand:nytrix.showOutput",
@@ -119,13 +122,51 @@
           ".nshape"
         ],
         "configuration": "./nshape-language-configuration.json"
+      },
+      {
+        "id": "nytrix-shader",
+        "aliases": [
+          "Nytrix Shader",
+          "shader",
+          "glsl",
+          "wgsl",
+          "hlsl",
+          "msl",
+          "metal"
+        ],
+        "extensions": [
+          ".glsl",
+          ".vert",
+          ".frag",
+          ".geom",
+          ".comp",
+          ".wgsl",
+          ".hlsl",
+          ".metal"
+        ],
+        "configuration": "./shader-language-configuration.json"
       }
     ],
     "grammars": [
       {
         "language": "nytrix",
         "scopeName": "source.nytrix",
-        "path": "./nytrix.tmLanguage.json"
+        "path": "./nytrix.tmLanguage.json",
+        "embeddedLanguages": {
+          "meta.embedded.inline.asm.nytrix": "asm",
+          "meta.embedded.inline.ini.nytrix": "ini",
+          "meta.embedded.inline.json.nytrix": "json",
+          "meta.embedded.inline.regex.nytrix": "regexp",
+          "meta.embedded.inline.shader.nytrix": "nytrix-shader",
+          "meta.embedded.inline.sql.nytrix": "sql",
+          "meta.embedded.inline.xml.nytrix": "xml",
+          "meta.embedded.inline.yaml.nytrix": "yaml"
+        }
+      },
+      {
+        "language": "nytrix-shader",
+        "scopeName": "source.nytrix-shader",
+        "path": "./shader.tmLanguage.json"
       },
       {
         "language": "nynth-shape",
@@ -146,7 +187,9 @@
           "meta.embedded.block.nytrix": "nytrix",
           "source.nytrix": "nytrix",
           "meta.embedded.block.nynth-shape": "nynth-shape",
-          "source.nynth-shape": "nynth-shape"
+          "source.nynth-shape": "nynth-shape",
+          "meta.embedded.block.shader": "nytrix-shader",
+          "source.nytrix-shader": "nytrix-shader"
         }
       }
     ],
