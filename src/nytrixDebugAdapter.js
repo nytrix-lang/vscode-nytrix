@@ -960,7 +960,7 @@ class NytrixDebugAdapter {
       throw new Error("gdb not found; install gdb or set nytrix.debug.gdbPath");
     }
 
-    const outDirRaw = expandVars(this.config.outputDir, cwd) || path.join(cwd, "build", "cache", "vscode-dap");
+    const outDirRaw = expandVars(this.config.outputDir, cwd) || path.join(cwd, ".nytrix-cache", "vscode-debug");
     const outDir = path.resolve(outDirRaw);
     fs.mkdirSync(outDir, { recursive: true });
     const binary = path.join(outDir, `${safeName(program)}-${process.pid}`);

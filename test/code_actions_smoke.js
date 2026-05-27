@@ -2,32 +2,11 @@
 "use strict";
 
 const assert = require("assert");
-const fs = require("fs");
-const Module = require("module");
 const path = require("path");
+const { findNytrixRoot } = require("./extension_root");
+const { loadExtensionWithVscode } = require("./vscode_stub");
 
-function findRepoRoot() {
-  let current = __dirname;
-  while (true) {
-    if (
-      fs.existsSync(path.join(current, "tmp", "projects", "vscode-nytrix")) &&
-      fs.existsSync(path.join(current, "lib"))
-    ) {
-      return current;
-    }
-    const parent = path.dirname(current);
-    if (parent === current) {
-      return path.resolve(__dirname, "../../../..");
-    }
-    current = parent;
-  }
-}
-
-function extensionRoot() {
-  return process.env.NYTRIX_VSCODE_EXTENSION_ROOT || path.join(findRepoRoot(), "tmp", "projects", "vscode-nytrix");
-}
-
-const repoRoot = findRepoRoot();
+const repoRoot = findNytrixRoot();
 process.env.NYTRIX_FMT = process.env.NYTRIX_FMT || path.join(repoRoot, "build", "release", "ny-fmt");
 
 class Kind {
@@ -132,16 +111,7 @@ const fakeVscode = {
   window: {}
 };
 
-const originalLoad = Module._load;
-Module._load = function patchedLoad(request, parent, isMain) {
-  if (request === "vscode") {
-    return fakeVscode;
-  }
-  return originalLoad.call(this, request, parent, isMain);
-};
-
-const extension = require(path.join(extensionRoot(), "src", "extension.js"));
-Module._load = originalLoad;
+const extension = loadExtensionWithVscode(fakeVscode);
 
 async function main() {
   const provider = new extension.__test.NytrixCodeActionProvider();

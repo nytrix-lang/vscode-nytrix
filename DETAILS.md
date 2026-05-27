@@ -17,14 +17,18 @@ test detail here.
 - Auto-starts `ny-lsp` when available.
 - LSP-backed diagnostics, hover, definition, references, symbols, completion,
   and signature help, with a lightweight extension-side symbol index fallback.
+- The fallback symbol index prefers the compiler parser artifact
+  (`ny --stop-after=parse --emit-artifact --emit-shapes`) before using local
+  regex heuristics. This keeps fallback symbols, semantic tokens, and type
+  completions aligned with the compiler as the language evolves.
 - Inline Nytrix diagnostic lenses for errors, warnings, notes, and analyzer
   hints, alongside normal squiggles and Problems entries.
 - Rich hover cards for Nytrix symbols, including function inputs, output type
   hints, docs, and source location.
 - Quiet editor title buttons for Run and Debug, with diagnostics handled
   automatically through `ny-lsp` when available.
-- Tool commands for public Nytrix binaries: `ny`, `ny-fmt`, `ny-test`,
-  `ny-perf`, and `ny-make`.
+- Tool commands for public Nytrix binaries: `ny`, `ny-doc`, `ny-fmt`,
+  `ny-test`, `ny-perf`, and `ny-make`.
 - Built-in toolchain bootstrap: when `ny` / `ny-lsp` is missing, the extension
   asks before cloning/building `https://github.com/nytrix-lang/nytrix`, or lets
   you set explicit binary paths instead.
@@ -55,6 +59,14 @@ test detail here.
   forced.
 - `Nytrix: Set Run Mode` and `Nytrix: Set Output Reveal Mode` provide quick
   session tuning without leaving the editor.
+- `Nytrix: Search Docs / API` runs `ny-doc search` across modules, symbols,
+  docs, and keyword tags. `Nytrix: Search Docs for Selection` seeds the query
+  from the selected text or symbol under the cursor.
+- The status bar entries expose command links for Actions, Docs, Toolchain,
+  Settings, and LSP restart, so the common workflow stays one click away after
+  the extension activates.
+- The extension contributes a Get Started walkthrough for toolchain discovery,
+  quick actions, docs/API search, and debug setup.
 - `nytrix.run.mode` lets you choose between one-off terminal runs, output-panel
   runs, or routing file/selection execution into the persistent REPL.
 - `nytrix.output.reveal` controls whether command output auto-opens on errors,
@@ -66,11 +78,12 @@ test detail here.
 
 The extension searches in this order:
 
-1. `nytrix.path` / `nytrix.lsp.path` / `nytrix.debugAdapter.path` settings.
-2. `NYTRIX_NY` / `NYTRIX_LSP` / `NYTRIX_DAP` environment variables.
+1. `nytrix.path`, `nytrix.lsp.path`, `nytrix.doc.path`, and explicit debug
+   adapter settings.
+2. `NYTRIX_NY`, `NYTRIX_LSP`, and `NYTRIX_DOC` environment variables.
 3. Workspace roots and their parents, including `build/release/ny`,
-   `build/release/ny-lsp`, `build/release/ny-fmt`, `build/release/ny-test`,
-   `build/release/ny-perf`, and `build/release/ny-make`.
+   `build/release/ny-lsp`, `build/release/ny-doc`, `build/release/ny-fmt`,
+   `build/release/ny-test`, `build/release/ny-perf`, and `build/release/ny-make`.
 4. `NYTRIX_HOME`.
 5. The extension-managed bootstrap root (`nytrix.bootstrap.root`), which
    defaults to `~/.local/share/nytrix`.
@@ -99,6 +112,8 @@ Install Toolchain` after you approve the install.
 - `Nytrix: Run Runtime Tests`
 - `Nytrix: Profile File`
 - `Nytrix: Restart Language Server`
+- `Nytrix: Open Settings`
+- `Nytrix: Open Extension Details`
 - `Nytrix: Show Toolchain`
 - `Nytrix: Install Toolchain`
 - `Nytrix: Set Run Mode`
@@ -156,6 +171,16 @@ build machine path differs from your workspace, use `sourceFileMap`, for example
 
 - `nytrix.path`: path to `ny`.
 - `nytrix.lsp.path`: path to `ny-lsp`.
+- `nytrix.doc.path`: path to `ny-doc`.
+- `nytrix.language.compilerParser.enabled`: use the compiler parser artifact
+  for fallback symbols, semantic tokens, and type/type-group completions.
+- `nytrix.language.compilerParser.dirtyBuffers`: also parse unsaved buffers
+  through the compiler fallback. Enabled by default so syntax changes flow from
+  the compiler into editor features without extension edits.
+- `nytrix.language.compilerParser.maxDirtyBytes`: size guard for unsaved buffer
+  compiler parsing. `0` disables the guard.
+- `nytrix.language.compilerParser.timeoutMs`: compiler parser fallback timeout;
+  stale/local results are kept if the compiler exceeds the budget.
 - `nytrix.lsp.enabled`: start/disable the language server.
 - `nytrix.bootstrap.mode`: choose `prompt`, `auto`, or `off` for missing-tool
   recovery. `prompt` asks on demand, `auto` asks as soon as a missing tool is
@@ -165,8 +190,9 @@ build machine path differs from your workspace, use `sourceFileMap`, for example
 - `nytrix.bootstrap.repo`: git repository cloned by `Nytrix: Install
   Toolchain`.
 - `nytrix.bootstrap.ref`: branch/tag/ref fetched by bootstrap.
-- `nytrix.debugAdapter.path`: path to `ny-dap`/compatible DAP adapter.
-- `nytrix.debugAdapter.useInternal`: use the built-in gdb/MI DAP adapter.
+- `nytrix.debugAdapter.path`: explicit path to a compatible external debug
+  adapter when the built-in adapter is disabled.
+- `nytrix.debugAdapter.useInternal`: use the built-in gdb/MI debug adapter.
 - `nytrix.debugAdapter.arguments`: extra adapter arguments.
 - `nytrix.debug.gdbPath`: path to `gdb`.
 - `nytrix.debug.compilerArguments`: extra debug-build compiler args.

@@ -1,83 +1,76 @@
-Nytrix VS Code test harness
+Nytrix VS Code Tests
+====================
 
-This folder keeps the manual and semi-automated editor testing tools together so
-we can exercise the installed extension without stomping on the real desktop.
-
-Layout:
-- `run.sh`: compact entrypoint for the private harness targets.
-- `keysend.py`: X11/XTest helper for targeting a specific display/window.
-- `keysend.sh`: wrapper that prefers `/tmp/ny_gui_venv/bin/python` when present.
-- `lsp_smoke.py`: raw JSON-RPC smoke test for hover, definition, references,
-  completion, signature help, workspace symbols, and syntax diagnostics.
-- `dap_smoke.py`: stdio DAP smoke for launch, breakpoints, stack frames,
-  evaluate, modules, and clean termination.
-- `bootstrap_smoke.js`: config/bootstrap-plan smoke for the extension-managed
-  Nytrix checkout flow.
-- `ui_smoke.py`: end-to-end VS Code/Xephyr smoke runner that captures
-  screenshots plus session/log artifacts for the stable clickthrough path:
-  command palette, editor baseline, compiler check, and host-window state. It
-  also supports focused syntax-only and assist-only modes when we want to probe
-  a narrower editor surface.
-- `headless` mode uses `Xvfb` instead of `Xephyr`, which is the right answer
-  for “headless Xephyr.” We still drive the same VS Code session and can still
-  dump screenshots from the virtual display.
-- `xephyr-smoke.sh`: launches an isolated Xephyr display, installs the local
-  extension into a private VS Code sandbox, and opens a sample Nytrix file.
-
-Typical flow:
+TLDR:
 
 ```sh
-cd tmp/projects/vscode-nytrix/test
+cd /home/e/vscode-nytrix
+npm run validate
+
+cd test
 ./run.sh smoke
-./run.sh ui
-./run.sh clickthrough
-./run.sh syntax-ui
 ./run.sh headless-clickthrough
-./run.sh full
 ```
 
-`run.sh xephyr` prints the temporary sandbox paths plus the Xephyr display it
-chose.
-You can then drive the window with:
+Use `npm run validate` for fast repo hygiene. Use `./run.sh smoke` when you
+also want live `ny-lsp` and debug-adapter coverage. Use a UI target only when
+you changed editor wiring, menus, keybindings, highlighting, or sandbox launch.
+
+Test Map
+--------
+
+| Target | What it proves | Cost |
+| --- | --- | --- |
+| `npm run validate` | JS syntax, manifest metadata, packaging rules, bootstrap/code-action/symbol smokes | fast |
+| `./run.sh smoke` | `validate`-style JS smokes plus raw LSP and DAP protocol checks | medium |
+| `./run.sh clickthrough` | Visible VS Code session with command palette, diagnostics, and editor flow | slow |
+| `./run.sh headless-clickthrough` | Same UI path through `Xvfb`, suitable for unattended runs | slow |
+| `./run.sh syntax-ui` | Focused grammar/highlighting screenshots | slow |
+| `./run.sh full` | Protocol smoke plus visible clickthrough | slowest |
+
+Files
+-----
+
+- `metadata_smoke.js`: package/manifest drift, commands, settings, walkthroughs.
+- `package_smoke.js`: package contents and generated-output guards.
+- `bootstrap_smoke.js`: managed Nytrix checkout plan.
+- `code_actions_smoke.js`: quick fixes, formatter/analyzer actions.
+- `debug_symbol_smoke.js`: compiler-backed symbol index and debug helpers.
+- `lsp_smoke.py`: raw JSON-RPC LSP behavior.
+- `dap_smoke.py`: raw stdio DAP behavior.
+- `ui_smoke.py`: automated VS Code session and screenshots.
+- `xephyr-smoke.sh`: isolated VS Code sandbox launcher.
+- `keysend.py` / `keysend.sh`: targeted X11 input helper.
+
+Useful Commands
+---------------
+
+```sh
+./run.sh metadata
+./run.sh package
+./run.sh js
+./run.sh lsp
+./run.sh dap
+./run.sh headless-ui
+```
+
+`./run.sh xephyr` prints the sandbox paths and display id. To drive that window
+manually:
 
 ```sh
 DISPLAY=:99 ./keysend.sh activate 0x<window-id>
 DISPLAY=:99 ./keysend.sh key F12
-DISPLAY=:99 ./keysend.sh click 1 --ctrl
 DISPLAY=:99 ./keysend.sh click-window 0x<window-id> 960 650 1
 ```
 
-Notes:
-- The helper intentionally targets an explicit window id so clicks stay
-  independent from whatever you are doing on the main desktop.
-- `Xephyr` is optional but strongly preferred for repeatable editor tests.
-- `xephyr-smoke.sh` auto-picks a free display from `:99..:109` unless you set
-  `NYTRIX_VSCODE_TEST_DISPLAY` yourself.
-- The sandbox uses private `user-data` and `extensions` directories, so it will
-  not touch the main VS Code profile.
-- `ui_smoke.py --fresh-session` forces a brand-new sandbox root; otherwise the
-  launcher can reuse a compatible session root and, more importantly, avoids
-  running two competing Xephyr sandboxes at the same time.
-- By default the launcher now closes older `nytrix-vscode-test*` sessions
-  before a fresh run starts, so opening a new sandbox cleans up stale old
-  nested windows automatically. Set `NYTRIX_VSCODE_TEST_CLOSE_OLD=0` only if
-  you intentionally want multiple sessions alive at once.
-- `keysend.sh` prefers `/tmp/ny_gui_venv/bin/python` because that environment
-  already has `python-xlib` installed on this machine.
-- `xephyr-smoke.sh` now launches the sandbox with `--sync off` and tries to
-  dismiss any stray welcome/sign-in sheet by default so the nested session
-  stays out of your way. It also disables the built-in Copilot/chat/auth
-  extensions in the sandbox so the test window does not prompt for AI sign-in.
-  Set `NYTRIX_VSCODE_TEST_AUTODISMISS_SIGNIN=0` only if you want to inspect
-  that UI on purpose.
-- The sandbox also hides VS Code's auxiliary/secondary sidebar by default so
-  screenshots stay focused on the editor instead of the agent/chat aside.
-- By default the launcher now maximizes Xephyr on the active host output,
-  restores your previously focused host window, and uses `-no-host-grab` so the
-  nested display does not trap your real keyboard/mouse session.
-- Fullscreen is applied through the host window manager after Xephyr maps, which
-  has been more stable here than Xephyr's direct `-output` fullscreen mode. Set
-  `NYTRIX_VSCODE_TEST_HOST_FULLSCREEN_MODE=fullscreen` if you want true
-  fullscreen instead of the default managed maximize behavior.
-- `NYTRIX_VSCODE_TEST_HEADLESS=1` swaps the visible nested display for `Xvfb`,
-  which is the supported fully headless backend.
+Sandbox Rules
+-------------
+
+- Tests use private `user-data`, `extensions`, and artifact directories.
+- UI runs auto-pick a display from `:99..:109` unless
+  `NYTRIX_VSCODE_TEST_DISPLAY` is set.
+- Fresh UI runs close older `nytrix-vscode-test*` sessions by default. Set
+  `NYTRIX_VSCODE_TEST_CLOSE_OLD=0` only when intentionally comparing sessions.
+- `NYTRIX_VSCODE_TEST_HEADLESS=1` switches UI runs to `Xvfb`.
+- `keysend.sh` prefers `/tmp/ny_gui_venv/bin/python` because it has `python-xlib`
+  on this machine.

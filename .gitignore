@@ -1,6 +1,16 @@
 *.vsix
+*.vsixmanifest
 node_modules/
+build/
+cache/
+dist/
+out/
+coverage/
+.nytrix-cache/
 .vscode-test/
+.vscode-test-web/
 test/.artifacts/
 test/__pycache__/
 test/.sandbox/
+npm-debug.log*
+yarn-error.log*

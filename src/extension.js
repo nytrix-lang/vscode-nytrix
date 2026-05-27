@@ -25,9 +25,30 @@ let bootstrapPromise = null;
 let workspaceSymbolIndex = null;
 
 const NYTRIX_BOOTSTRAP_REPO = "https://github.com/nytrix-lang/nytrix";
+const NYTRIX_FILE_SELECTOR = { language: "nytrix", scheme: "file" };
+const SEMANTIC_TOKEN_TYPES = ["function", "class", "enum", "type", "variable", "property", "namespace", "operator"];
+const TOOL_SPECS = {
+  ny: { bin: "ny", config: "path", env: "NYTRIX_NY" },
+  lsp: { bin: "ny-lsp", config: "lsp.path", env: "NYTRIX_LSP" },
+  fmt: { bin: "ny-fmt" },
+  doc: { bin: "ny-doc", config: "doc.path", env: "NYTRIX_DOC" },
+  test: { bin: "ny-test" },
+  perf: { bin: "ny-perf" },
+  make: { bin: "ny-make" }
+};
 
 function lspOwnsLanguageFeatures() {
   return cfg().get("lsp.enabled", true) && lspReady;
+}
+
+function registerCommands(context, entries) {
+  context.subscriptions.push(
+    ...entries.map(([id, handler]) => vscode.commands.registerCommand(id, handler))
+  );
+}
+
+function subscribe(context, ...disposables) {
+  context.subscriptions.push(...disposables);
 }
 
 function activate(context) {
@@ -41,58 +62,64 @@ function activate(context) {
   runStatus.command = "nytrix.showActions";
   lspStatus.command = "nytrix.showToolchain";
 
-  context.subscriptions.push(output, checkDiagnostics, adviceDiagnostics, runStatus, lspStatus);
+  subscribe(context, output, checkDiagnostics, adviceDiagnostics, runStatus, lspStatus);
   if (errorLensTypes) {
-    context.subscriptions.push(...Object.values(errorLensTypes));
+    subscribe(context, ...Object.values(errorLensTypes));
   }
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.showActions", showActions));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.showOutput", () => showOutput(true)));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.clearOutput", clearOutputChannel));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.pickRunMode", pickRunMode));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.pickOutputReveal", pickOutputReveal));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.startRepl", startRepl));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.focusRepl", focusRepl));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.resetRepl", resetRepl));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.clearRepl", clearRepl));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.sendSelectionToRepl", sendSelectionToRepl));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.runFileInRepl", runFileInRepl));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.loadFileInRepl", loadFileInRepl));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.runFile", runFile));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.runSelection", runSelection));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.checkFile", checkFile));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.debugFile", debugFile));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.expandFile", expandFile));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.formatFile", formatFile));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.optimizeFile", optimizeFile));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.analyzeFile", analyzeFile));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.traceFile", traceFile));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.dumpAst", dumpAst));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.dumpLlvm", dumpLlvm));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.dumpStats", dumpStats));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.runTests", runTests));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.profileFile", profileFile));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.goToDefinition", () => editorCommand("editor.action.revealDefinition")));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.peekDefinition", () => editorCommand("editor.action.peekDefinition")));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.findDefinitionByName", () => findDefinitionByName(workspaceSymbolIndex)));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.findReferences", () => editorCommand("references-view.findReferences")));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.renameSymbol", () => editorCommand("editor.action.rename")));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.showHover", () => editorCommand("editor.action.showHover")));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.showSignatureHelp", () => editorCommand("editor.action.triggerParameterHints")));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.gotoDocumentSymbol", () => editorCommand("workbench.action.gotoSymbol")));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.gotoWorkspaceSymbol", () => editorCommand("workbench.action.showAllSymbols")));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.navigateBack", () => vscode.commands.executeCommand("workbench.action.navigateBack")));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.navigateForward", () => vscode.commands.executeCommand("workbench.action.navigateForward")));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.restartLsp", () => restartLsp(context)));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.installToolchain", () => installToolchain(context)));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.showToolchain", showToolchain));
-  context.subscriptions.push(vscode.commands.registerCommand("nytrix.pickProcess", pickProcess));
-  context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(() => {
+  registerCommands(context, [
+    ["nytrix.showActions", showActions],
+    ["nytrix.showOutput", () => showOutput(true)],
+    ["nytrix.clearOutput", clearOutputChannel],
+    ["nytrix.pickRunMode", pickRunMode],
+    ["nytrix.pickOutputReveal", pickOutputReveal],
+    ["nytrix.startRepl", startRepl],
+    ["nytrix.focusRepl", focusRepl],
+    ["nytrix.resetRepl", resetRepl],
+    ["nytrix.clearRepl", clearRepl],
+    ["nytrix.sendSelectionToRepl", sendSelectionToRepl],
+    ["nytrix.runFileInRepl", runFileInRepl],
+    ["nytrix.loadFileInRepl", loadFileInRepl],
+    ["nytrix.runFile", runFile],
+    ["nytrix.runSelection", runSelection],
+    ["nytrix.checkFile", checkFile],
+    ["nytrix.debugFile", debugFile],
+    ["nytrix.expandFile", expandFile],
+    ["nytrix.formatFile", formatFile],
+    ["nytrix.optimizeFile", optimizeFile],
+    ["nytrix.analyzeFile", analyzeFile],
+    ["nytrix.traceFile", traceFile],
+    ["nytrix.dumpAst", dumpAst],
+    ["nytrix.dumpLlvm", dumpLlvm],
+    ["nytrix.dumpStats", dumpStats],
+    ["nytrix.runTests", runTests],
+    ["nytrix.profileFile", profileFile],
+    ["nytrix.searchDocs", searchDocs],
+    ["nytrix.searchDocsForSelection", searchDocsForSelection],
+    ["nytrix.openSettings", openSettings],
+    ["nytrix.openDetails", openDetails],
+    ["nytrix.goToDefinition", () => editorCommand("editor.action.revealDefinition")],
+    ["nytrix.peekDefinition", () => editorCommand("editor.action.peekDefinition")],
+    ["nytrix.findDefinitionByName", () => findDefinitionByName(workspaceSymbolIndex)],
+    ["nytrix.findReferences", () => editorCommand("references-view.findReferences")],
+    ["nytrix.renameSymbol", () => editorCommand("editor.action.rename")],
+    ["nytrix.showHover", () => editorCommand("editor.action.showHover")],
+    ["nytrix.showSignatureHelp", () => editorCommand("editor.action.triggerParameterHints")],
+    ["nytrix.gotoDocumentSymbol", () => editorCommand("workbench.action.gotoSymbol")],
+    ["nytrix.gotoWorkspaceSymbol", () => editorCommand("workbench.action.showAllSymbols")],
+    ["nytrix.navigateBack", () => vscode.commands.executeCommand("workbench.action.navigateBack")],
+    ["nytrix.navigateForward", () => vscode.commands.executeCommand("workbench.action.navigateForward")],
+    ["nytrix.restartLsp", () => restartLsp(context)],
+    ["nytrix.installToolchain", () => installToolchain(context)],
+    ["nytrix.showToolchain", showToolchain],
+    ["nytrix.pickProcess", pickProcess]
+  ]);
+  subscribe(context, vscode.window.onDidChangeActiveTextEditor(() => {
     updateStatus();
     scheduleActiveEditorDiagnosticsRefresh();
   }));
-  context.subscriptions.push(vscode.window.onDidChangeVisibleTextEditors(() => scheduleActiveEditorDiagnosticsRefresh()));
-  context.subscriptions.push(vscode.languages.onDidChangeDiagnostics(() => scheduleActiveEditorDiagnosticsRefresh()));
-  context.subscriptions.push(vscode.window.onDidCloseTerminal((terminal) => {
+  subscribe(context, vscode.window.onDidChangeVisibleTextEditors(() => scheduleActiveEditorDiagnosticsRefresh()));
+  subscribe(context, vscode.languages.onDidChangeDiagnostics(() => scheduleActiveEditorDiagnosticsRefresh()));
+  subscribe(context, vscode.window.onDidCloseTerminal((terminal) => {
     if (terminal === sharedTerminal) {
       sharedTerminal = null;
     }
@@ -101,8 +128,8 @@ function activate(context) {
       sharedReplBooted = false;
     }
   }));
-  context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(onSaveCheck));
-  context.subscriptions.push(vscode.workspace.onDidChangeConfiguration((event) => {
+  subscribe(context, vscode.workspace.onDidSaveTextDocument(onSaveCheck));
+  subscribe(context, vscode.workspace.onDidChangeConfiguration((event) => {
     if (event.affectsConfiguration("nytrix")) {
       cachedTools = null;
       updateStatus();
@@ -110,12 +137,12 @@ function activate(context) {
       scheduleActiveEditorDiagnosticsRefresh(20);
     }
   }));
-  context.subscriptions.push(vscode.languages.registerCodeLensProvider(
-    { language: "nytrix", scheme: "file" },
+  subscribe(context, vscode.languages.registerCodeLensProvider(
+    NYTRIX_FILE_SELECTOR,
     new NytrixCodeLensProvider()
   ));
-  context.subscriptions.push(vscode.languages.registerCodeActionsProvider(
-    { language: "nytrix", scheme: "file" },
+  subscribe(context, vscode.languages.registerCodeActionsProvider(
+    NYTRIX_FILE_SELECTOR,
     new NytrixCodeActionProvider(),
     {
       providedCodeActionKinds: [
@@ -125,61 +152,68 @@ function activate(context) {
       ]
     }
   ));
-  context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(
-    { language: "nytrix", scheme: "file" },
+  subscribe(context, vscode.languages.registerDocumentFormattingEditProvider(
+    NYTRIX_FILE_SELECTOR,
     new NytrixDocumentFormattingProvider()
   ));
   const symbolIndex = new NytrixSymbolIndex();
   workspaceSymbolIndex = symbolIndex;
-  context.subscriptions.push(symbolIndex);
-  context.subscriptions.push(vscode.languages.registerDefinitionProvider(
-    { language: "nytrix", scheme: "file" },
+  subscribe(context, symbolIndex);
+  subscribe(context, vscode.languages.registerDefinitionProvider(
+    NYTRIX_FILE_SELECTOR,
     new NytrixDefinitionProvider(symbolIndex)
   ));
-  context.subscriptions.push(vscode.languages.registerReferenceProvider(
-    { language: "nytrix", scheme: "file" },
+  subscribe(context, vscode.languages.registerReferenceProvider(
+    NYTRIX_FILE_SELECTOR,
     new NytrixReferenceProvider(symbolIndex)
   ));
-  context.subscriptions.push(vscode.languages.registerHoverProvider(
-    { language: "nytrix", scheme: "file" },
+  subscribe(context, vscode.languages.registerHoverProvider(
+    NYTRIX_FILE_SELECTOR,
     new NytrixHoverProvider(symbolIndex)
   ));
-  context.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(
-    { language: "nytrix", scheme: "file" },
+  subscribe(context, vscode.languages.registerDocumentSymbolProvider(
+    NYTRIX_FILE_SELECTOR,
     new NytrixDocumentSymbolProvider(symbolIndex)
   ));
-  context.subscriptions.push(vscode.languages.registerWorkspaceSymbolProvider(
+  if (typeof vscode.SemanticTokensLegend === "function" && typeof vscode.SemanticTokensBuilder === "function") {
+    subscribe(context, vscode.languages.registerDocumentSemanticTokensProvider(
+      NYTRIX_FILE_SELECTOR,
+      new NytrixSemanticTokensProvider(symbolIndex),
+      new vscode.SemanticTokensLegend(SEMANTIC_TOKEN_TYPES, [])
+    ));
+  }
+  subscribe(context, vscode.languages.registerWorkspaceSymbolProvider(
     new NytrixWorkspaceSymbolProvider(symbolIndex)
   ));
-  context.subscriptions.push(vscode.languages.registerCompletionItemProvider(
-    { language: "nytrix", scheme: "file" },
+  subscribe(context, vscode.languages.registerCompletionItemProvider(
+    NYTRIX_FILE_SELECTOR,
     new NytrixCompletionProvider(symbolIndex),
     ".", ":", "(", "_"
   ));
-  context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(
-    { language: "nytrix", scheme: "file" },
+  subscribe(context, vscode.languages.registerSignatureHelpProvider(
+    NYTRIX_FILE_SELECTOR,
     new NytrixSignatureProvider(symbolIndex),
     "(", ","
   ));
-  context.subscriptions.push(vscode.workspace.onDidSaveTextDocument((document) => {
+  subscribe(context, vscode.workspace.onDidSaveTextDocument((document) => {
     symbolIndex.updateDocument(document);
     symbolIndex.refreshCompilerSymbols(document);
   }));
-  context.subscriptions.push(vscode.workspace.onDidChangeTextDocument((event) => {
+  subscribe(context, vscode.workspace.onDidChangeTextDocument((event) => {
     symbolIndex.updateDocument(event.document);
     if (isNytrixDocument(event.document)) {
       scheduleActiveEditorDiagnosticsRefresh(120);
     }
   }));
-  context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider(
+  subscribe(context, vscode.debug.registerDebugConfigurationProvider(
     "nytrix",
     new NytrixDebugConfigurationProvider()
   ));
-  context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory(
+  subscribe(context, vscode.debug.registerDebugAdapterDescriptorFactory(
     "nytrix",
     new NytrixDebugAdapterFactory()
   ));
-  context.subscriptions.push(vscode.tasks.registerTaskProvider("nytrix", new NytrixTaskProvider()));
+  subscribe(context, vscode.tasks.registerTaskProvider("nytrix", new NytrixTaskProvider()));
 
   updateStatus();
   startLsp(context);
@@ -387,14 +421,20 @@ function bootstrapRef() {
   return String(cfg().get("bootstrap.ref", "main") || "main").trim() || "main";
 }
 
+function exeName(name) {
+  return process.platform === "win32" ? `${name}.exe` : name;
+}
+
 function bootstrapToolPaths(root = bootstrapRoot()) {
+  const release = path.join(root, "build", "release");
   return {
     root,
-    ny: path.join(root, "build", "release", process.platform === "win32" ? "ny.exe" : "ny"),
-    lsp: path.join(root, "build", "release", process.platform === "win32" ? "ny-lsp.exe" : "ny-lsp"),
-    fmt: path.join(root, "build", "release", process.platform === "win32" ? "ny-fmt.exe" : "ny-fmt"),
-    test: path.join(root, "build", "release", process.platform === "win32" ? "ny-test.exe" : "ny-test"),
-    perf: path.join(root, "build", "release", process.platform === "win32" ? "ny-perf.exe" : "ny-perf"),
+    ny: path.join(release, exeName(TOOL_SPECS.ny.bin)),
+    lsp: path.join(release, exeName(TOOL_SPECS.lsp.bin)),
+    fmt: path.join(release, exeName(TOOL_SPECS.fmt.bin)),
+    doc: path.join(release, exeName(TOOL_SPECS.doc.bin)),
+    test: path.join(release, exeName(TOOL_SPECS.test.bin)),
+    perf: path.join(release, exeName(TOOL_SPECS.perf.bin)),
     makeScript: path.join(root, "make")
   };
 }
@@ -574,27 +614,14 @@ function findOnPath(name) {
 }
 
 function configKeyForTool(tool) {
-  if (tool === "ny") {
-    return "path";
-  }
-  if (tool === "ny-lsp") {
-    return "lsp.path";
-  }
-  if (tool === "ny-dap" || tool === "ny-debug" || tool === "nytrix-dap") {
-    return "debugAdapter.path";
-  }
-  return "";
+  const spec = Object.values(TOOL_SPECS).find((entry) => entry.bin === tool);
+  return spec && spec.config ? spec.config : "";
 }
 
 function envKeyForTool(tool) {
-  if (tool === "ny") {
-    return "NYTRIX_NY";
-  }
-  if (tool === "ny-lsp") {
-    return "NYTRIX_LSP";
-  }
-  if (tool === "ny-dap" || tool === "ny-debug" || tool === "nytrix-dap") {
-    return "NYTRIX_DAP";
+  const spec = Object.values(TOOL_SPECS).find((entry) => entry.bin === tool);
+  if (spec && spec.env) {
+    return spec.env;
   }
   return `NYTRIX_${tool.replace(/^ny-/, "").replace(/[^A-Za-z0-9]/g, "_").toUpperCase()}`;
 }
@@ -650,25 +677,22 @@ function findRepoRoot(context) {
 function tools(context) {
   if (!cachedTools) {
     const ctx = context || extensionContext;
-    cachedTools = {
-      ny: findTool(ctx, "ny"),
-      lsp: findTool(ctx, "ny-lsp"),
-      dap: findDebugAdapter(ctx),
-      fmt: findTool(ctx, "ny-fmt"),
-      test: findTool(ctx, "ny-test"),
-      perf: findTool(ctx, "ny-perf"),
-      make: findTool(ctx, "ny-make")
-    };
+    cachedTools = Object.fromEntries(
+      Object.entries(TOOL_SPECS).map(([key, spec]) => [key, findTool(ctx, spec.bin)])
+    );
+    cachedTools.dap = findDebugAdapter(ctx);
   }
   return cachedTools;
 }
 
 function findDebugAdapter(context) {
-  for (const name of ["ny-dap", "ny-debug", "nytrix-dap"]) {
-    const found = findTool(context, name);
-    if (found.path) {
-      return found;
-    }
+  if (cfg().get("debugAdapter.useInternal", true)) {
+    return { path: "", source: "built-in" };
+  }
+
+  const configured = expandVars(cfg().get("debugAdapter.path", ""));
+  if (configured && isRunnable(configured)) {
+    return { path: configured, source: "settings" };
   }
   return { path: "", source: "not found" };
 }
@@ -735,8 +759,7 @@ async function applyBootstrapToolSettings(plan) {
 }
 
 async function promptForToolPath(name, label) {
-  const toolName = name === "lsp" ? "ny-lsp" : name === "dap" ? "ny-dap" : name;
-  const configKey = configKeyForTool(toolName);
+  const configKey = name === "dap" ? "debugAdapter.path" : configKeyForTool(name === "lsp" ? "ny-lsp" : name);
   if (!configKey) {
     await vscode.commands.executeCommand("workbench.action.openSettings", `@ext:x3ric.nytrix ${label}`);
     return null;
@@ -1183,6 +1206,53 @@ async function saveDocument(document) {
   }
 }
 
+async function preparedToolDocument(document, toolName, label, reason, options = {}) {
+  const target = await resolveNytrixDocument(document);
+  if (!target || !isNytrixDocument(target)) {
+    return null;
+  }
+  const resolver = toolName === "ny" ? nyOrShow : (toolOptions) => toolOrShow(toolName, label, toolOptions);
+  const tool = await resolver({ reason, ...options });
+  if (!tool) {
+    return null;
+  }
+  await saveDocument(target);
+  return { target, tool, cwd: workspaceCwd(target) };
+}
+
+async function runActiveNyCommand(label, makeArgs, options = {}) {
+  const editor = activeNytrixEditor();
+  if (!editor) {
+    return null;
+  }
+  const ny = await nyOrShow({ reason: options.reason });
+  if (!ny) {
+    return null;
+  }
+  await saveDocument(editor.document);
+  return runProcess(
+    ny.path,
+    makeArgs(editor.document),
+    workspaceCwd(editor.document),
+    label,
+    options.process || {}
+  );
+}
+
+async function runFmtDocument(document, args, label, reason, options = {}) {
+  const prepared = await preparedToolDocument(document, "fmt", "ny-fmt", reason);
+  if (!prepared) {
+    return null;
+  }
+  const result = await runProcess(prepared.tool.path, [...args, prepared.target.uri.fsPath], prepared.cwd, label, options);
+  await refreshAnalyzeDiagnostics(prepared.target, {
+    quiet: true,
+    fallbackOutput: result.output,
+    fallbackCode: result.code
+  });
+  return result;
+}
+
 async function runFile() {
   const editor = activeNytrixEditor();
   if (!editor) {
@@ -1230,22 +1300,26 @@ async function runSelection() {
 }
 
 async function startRepl() {
-  await ensureRepl(activeNytrixEditor() ? activeNytrixEditor().document : null, { reveal: true });
+  const editor = activeNytrixEditor();
+  await ensureRepl(editor ? editor.document : null, { reveal: true });
 }
 
 async function focusRepl() {
-  const term = await ensureRepl(activeNytrixEditor() ? activeNytrixEditor().document : null, { reveal: true });
+  const editor = activeNytrixEditor();
+  const term = await ensureRepl(editor ? editor.document : null, { reveal: true });
   if (term) {
     term.show(false);
   }
 }
 
 async function resetRepl() {
-  await sendReplCommand(":reset", activeNytrixEditor() ? activeNytrixEditor().document : null, { status: "reset requested" });
+  const editor = activeNytrixEditor();
+  await sendReplCommand(":reset", editor ? editor.document : null, { status: "reset requested" });
 }
 
 async function clearRepl() {
-  await sendReplCommand(":clear", activeNytrixEditor() ? activeNytrixEditor().document : null, { status: "clear requested" });
+  const editor = activeNytrixEditor();
+  await sendReplCommand(":clear", editor ? editor.document : null, { status: "clear requested" });
 }
 
 async function sendSelectionToRepl(editorArg) {
@@ -1287,25 +1361,22 @@ async function loadFileInRepl(documentArg) {
 }
 
 async function checkFile(document, options = {}) {
-  const target = await resolveNytrixDocument(document);
-  const ny = await nyOrShow({
+  const prepared = await preparedToolDocument(document, "ny", "Nytrix compiler", "Nytrix check needs the compiler", {
     prompt: options.prompt !== false,
     showError: options.showError !== false,
-    attemptInstall: options.attemptInstall !== false,
-    reason: "Nytrix check needs the compiler"
+    attemptInstall: options.attemptInstall !== false
   });
-  if (!target || !isNytrixDocument(target) || !ny) {
+  if (!prepared) {
     return;
   }
-  await saveDocument(target);
   const result = await runProcess(
-    ny.path,
-    ["--diag-compact", "-emit-only", target.uri.fsPath],
-    workspaceCwd(target),
+    prepared.tool.path,
+    ["--diag-compact", "-emit-only", prepared.target.uri.fsPath],
+    prepared.cwd,
     "Check File",
     { quietSuccess: true }
   );
-  publishDiagnostics("check", target, result.output, result.code);
+  publishDiagnostics("check", prepared.target, result.output, result.code);
   if (result.code === 0) {
     vscode.window.setStatusBarMessage("Nytrix: check passed", 2000);
   }
@@ -1334,18 +1405,7 @@ async function debugFile() {
 }
 
 async function expandFile() {
-  const editor = activeNytrixEditor();
-  const ny = await nyOrShow();
-  if (!editor || !ny) {
-    return;
-  }
-  await saveDocument(editor.document);
-  await runProcess(
-    ny.path,
-    ["--expand", editor.document.uri.fsPath],
-    workspaceCwd(editor.document),
-    "Expand File"
-  );
+  await runActiveNyCommand("Expand File", (document) => ["--expand", document.uri.fsPath]);
 }
 
 async function pickProcess() {
@@ -1378,86 +1438,88 @@ async function pickProcess() {
 }
 
 async function formatFile(document) {
-  const target = await resolveNytrixDocument(document);
-  const fmt = await toolOrShow("fmt", "ny-fmt", { reason: "Formatting needs ny-fmt" });
-  if (!target || !fmt) {
-    return;
-  }
-  await saveDocument(target);
-  await runProcess(fmt.path, ["--fix", target.uri.fsPath], workspaceCwd(target), "Format File");
-  await refreshAnalyzeDiagnostics(target, { quiet: true });
+  await runFmtDocument(document, ["--fix"], "Format File", "Formatting needs ny-fmt");
 }
 
 async function optimizeFile(document) {
-  const target = await resolveNytrixDocument(document);
-  const fmt = await toolOrShow("fmt", "ny-fmt", { reason: "Optimization needs ny-fmt" });
-  if (!target || !fmt) {
-    return;
-  }
-  await saveDocument(target);
-  await runProcess(fmt.path, ["--optimize", "--apply", target.uri.fsPath], workspaceCwd(target), "Optimize File");
-  await refreshAnalyzeDiagnostics(target, { quiet: true });
+  await runFmtDocument(document, ["--optimize", "--apply"], "Optimize File", "Optimization needs ny-fmt");
 }
 
 async function analyzeFile(document) {
-  const target = await resolveNytrixDocument(document);
-  const fmt = await toolOrShow("fmt", "ny-fmt", { reason: "Analyze needs ny-fmt" });
-  if (!target || !fmt) {
+  await runFmtDocument(document, ["--analyze", "--no-color"], "Analyze File", "Analyze needs ny-fmt", { reveal: "always" });
+}
+
+function selectedOrWord(editor) {
+  if (!editor) {
+    return "";
+  }
+  const selected = editor.document.getText(editor.selection).trim();
+  if (selected) {
+    return selected;
+  }
+  const range = editor.document.getWordRangeAtPosition(editor.selection.active, /[A-Za-z_][A-Za-z0-9_.-]*/);
+  return range ? editor.document.getText(range).trim() : "";
+}
+
+async function runDocSearch(query, label = "Search Docs") {
+  const doc = await toolOrShow("doc", "ny-doc", { reason: "Documentation search needs ny-doc" });
+  if (!doc) {
     return;
   }
-  await saveDocument(target);
-  const result = await runProcess(
-    fmt.path,
-    ["--analyze", "--no-color", target.uri.fsPath],
-    workspaceCwd(target),
-    "Analyze File",
-    { reveal: "always" }
-  );
-  await refreshAnalyzeDiagnostics(target, {
-    quiet: true,
-    fallbackOutput: result.output,
-    fallbackCode: result.code
+  const cwd = activeNytrixEditor() ? workspaceCwd(activeNytrixEditor().document) : findRepoRoot();
+  await runProcess(doc.path, ["search", query], cwd, label, { reveal: "always" });
+}
+
+async function searchDocs() {
+  const editor = activeNytrixEditor();
+  const seed = selectedOrWord(editor);
+  const query = await vscode.window.showInputBox({
+    title: "Search Nytrix docs and symbols",
+    prompt: "Search stdlib modules, symbols, docs, and keyword tags through ny-doc.",
+    value: seed,
+    placeHolder: "e.g. list flatten power_mod std.math regex fmt"
   });
+  if (!query || !query.trim()) {
+    return;
+  }
+  await runDocSearch(query.trim(), "Search Docs");
+}
+
+async function searchDocsForSelection() {
+  const editor = activeNytrixEditor();
+  const query = selectedOrWord(editor);
+  if (!query) {
+    return searchDocs();
+  }
+  await runDocSearch(query, "Search Docs for Selection");
+}
+
+async function openSettings() {
+  await vscode.commands.executeCommand("workbench.action.openSettings", "@ext:x3ric.nytrix");
+}
+
+async function openDetails() {
+  if (!extensionContext) {
+    return;
+  }
+  const uri = vscode.Uri.file(path.join(extensionContext.extensionPath, "DETAILS.md"));
+  await vscode.commands.executeCommand("markdown.showPreview", uri);
 }
 
 async function traceFile() {
-  const editor = activeNytrixEditor();
-  const ny = await nyOrShow();
-  if (!editor || !ny) {
-    return;
-  }
-  await saveDocument(editor.document);
-  await runProcess(ny.path, ["-trace", "-run", editor.document.uri.fsPath], workspaceCwd(editor.document), "Trace File", { reveal: "always" });
+  await runActiveNyCommand("Trace File", (document) => ["-trace", "-run", document.uri.fsPath], { process: { reveal: "always" } });
 }
 
 async function dumpAst() {
-  const editor = activeNytrixEditor();
-  const ny = await nyOrShow();
-  if (!editor || !ny) {
-    return;
-  }
-  await saveDocument(editor.document);
-  await runProcess(ny.path, ["-dump-ast", editor.document.uri.fsPath], workspaceCwd(editor.document), "Dump AST", { reveal: "always" });
+  await runActiveNyCommand("Dump AST", (document) => ["-dump-ast", document.uri.fsPath], { process: { reveal: "always" } });
 }
 
 async function dumpLlvm() {
-  const editor = activeNytrixEditor();
-  const ny = await nyOrShow();
-  if (!editor || !ny) {
-    return;
-  }
-  await saveDocument(editor.document);
-  await runProcess(ny.path, ["-dump-llvm", editor.document.uri.fsPath], workspaceCwd(editor.document), "Dump LLVM", { reveal: "always" });
+  await runActiveNyCommand("Dump LLVM", (document) => ["-dump-llvm", document.uri.fsPath], { process: { reveal: "always" } });
 }
 
 async function dumpStats() {
-  const editor = activeNytrixEditor();
-  const ny = await nyOrShow();
-  if (!editor || !ny) {
-    return;
-  }
-  await saveDocument(editor.document);
-  await runProcess(ny.path, ["-dump-stats", "-time", editor.document.uri.fsPath], workspaceCwd(editor.document), "Dump Stats", { reveal: "always" });
+  await runActiveNyCommand("Dump Stats", (document) => ["-dump-stats", "-time", document.uri.fsPath], { process: { reveal: "always" } });
 }
 
 async function runTests() {
@@ -1483,52 +1545,63 @@ async function showActions() {
   const items = [];
   const modeMeta = runModeMeta();
   const revealMeta = outputRevealMeta();
-  const pushSeparator = (label) => items.push({ label, kind: vscode.QuickPickItemKind.Separator });
-  const pushAction = (label, command, detail, description) => {
-    items.push({ label, command, detail, description });
-  };
-
-  if (editor) {
-    pushSeparator("Session");
-    pushAction(`Run Mode: ${modeMeta.label}`, "nytrix.pickRunMode", modeMeta.detail, "Config");
-    pushAction(`Output Reveal: ${revealMeta.label}`, "nytrix.pickOutputReveal", revealMeta.detail, "Config");
-    pushSeparator("File");
-    pushAction("Run Current File", "nytrix.runFile", `Compile and run the active Nytrix file through ${modeMeta.label.toLowerCase()} mode.`, "Run");
-    pushAction("Check Current File", "nytrix.checkFile", "Compiler diagnostics with problems integration.", "Check");
-    pushAction("Expand Current File", "nytrix.expandFile", "Show sugar / expansion metadata in the Nytrix output.", "Expand");
-    pushAction("Debug Current File", "nytrix.debugFile", "Launch the built-in Nytrix debug adapter.", "Debug");
-    pushAction("Format Current File", "nytrix.formatFile", "Apply ny-fmt fixes to the active file.", "Format");
-    pushAction("Analyze Current File", "nytrix.analyzeFile", "Run ny-fmt analysis notes and publish diagnostics.", "Analyze");
-    pushAction("Trace Current File", "nytrix.traceFile", "Run with runtime call tracing.", "Trace");
-    pushAction("Dump AST", "nytrix.dumpAst", "Print the compiler AST to the Nytrix output.", "AST");
-    pushAction("Dump LLVM", "nytrix.dumpLlvm", "Print the lowered LLVM IR to the Nytrix output.", "LLVM");
-    pushAction("Dump Compile Stats", "nytrix.dumpStats", "Emit compile stats and timings.", "Stats");
-    pushSeparator("REPL");
-    pushAction("Start REPL", "nytrix.startRepl", "Boot a persistent Nytrix REPL in an integrated terminal.", "REPL");
-    pushAction("Focus REPL", "nytrix.focusRepl", "Reveal the persistent Nytrix REPL terminal.", "REPL");
-    pushAction("Send Selection / Line to REPL", "nytrix.sendSelectionToRepl", "Send the current selection, or the current line when nothing is selected.", "REPL");
-    pushAction("Load Current File in REPL", "nytrix.loadFileInRepl", "Use :load on the active file to keep defs in the persistent REPL state.", "REPL");
-    pushAction("Run Current File in REPL", "nytrix.runFileInRepl", "Use :run on the active file inside the persistent REPL.", "REPL");
-    pushAction("Reset REPL", "nytrix.resetRepl", "Reset the persistent REPL state without closing the terminal.", "REPL");
-    pushAction("Clear REPL Screen", "nytrix.clearRepl", "Clear the REPL display while keeping its state alive.", "REPL");
-    pushSeparator("Inspect");
-    pushAction("Show Symbol Hover", "nytrix.showHover", "Open the richer Nytrix hover card for the symbol at the cursor.", "Inspect");
-    pushAction("Show Signature Help", "nytrix.showSignatureHelp", "Preview the active call signature and parameter list.", "Inspect");
-    pushAction("Go to Definition", "nytrix.goToDefinition", "Jump to the best definition match for the symbol at the cursor.", "Inspect");
-    pushAction("Peek Definition", "nytrix.peekDefinition", "Preview the symbol definition inline without leaving the editor.", "Inspect");
-    pushAction("Find Definition by Name", "nytrix.findDefinitionByName", "Type a function or symbol name and jump to the best indexed match.", "Inspect");
-    pushAction("Find References", "nytrix.findReferences", "List symbol usages across the workspace.", "Inspect");
-    pushAction("Go to Symbol in File", "nytrix.gotoDocumentSymbol", "Quick-jump to a symbol inside the current file.", "Inspect");
-    pushAction("Go to Symbol in Workspace", "nytrix.gotoWorkspaceSymbol", "Search symbols across the indexed workspace and stdlib.", "Inspect");
+  const fileSections = editor ? [
+    ["Session", [
+      [`Run Mode: ${modeMeta.label}`, "nytrix.pickRunMode", modeMeta.detail, "Config"],
+      [`Output Reveal: ${revealMeta.label}`, "nytrix.pickOutputReveal", revealMeta.detail, "Config"]
+    ]],
+    ["File", [
+      ["Run Current File", "nytrix.runFile", `Compile and run the active Nytrix file through ${modeMeta.label.toLowerCase()} mode.`, "Run"],
+      ["Check Current File", "nytrix.checkFile", "Compiler diagnostics with problems integration.", "Check"],
+      ["Expand Current File", "nytrix.expandFile", "Show sugar / expansion metadata in the Nytrix output.", "Expand"],
+      ["Debug Current File", "nytrix.debugFile", "Launch the built-in Nytrix debug adapter.", "Debug"],
+      ["Format Current File", "nytrix.formatFile", "Apply ny-fmt fixes to the active file.", "Format"],
+      ["Analyze Current File", "nytrix.analyzeFile", "Run ny-fmt analysis notes and publish diagnostics.", "Analyze"],
+      ["Trace Current File", "nytrix.traceFile", "Run with runtime call tracing.", "Trace"],
+      ["Dump AST", "nytrix.dumpAst", "Print the compiler AST to the Nytrix output.", "AST"],
+      ["Dump LLVM", "nytrix.dumpLlvm", "Print the lowered LLVM IR to the Nytrix output.", "LLVM"],
+      ["Dump Compile Stats", "nytrix.dumpStats", "Emit compile stats and timings.", "Stats"]
+    ]],
+    ["REPL", [
+      ["Start REPL", "nytrix.startRepl", "Boot a persistent Nytrix REPL in an integrated terminal.", "REPL"],
+      ["Focus REPL", "nytrix.focusRepl", "Reveal the persistent Nytrix REPL terminal.", "REPL"],
+      ["Send Selection / Line to REPL", "nytrix.sendSelectionToRepl", "Send the current selection, or the current line when nothing is selected.", "REPL"],
+      ["Load Current File in REPL", "nytrix.loadFileInRepl", "Use :load on the active file to keep defs in the persistent REPL state.", "REPL"],
+      ["Run Current File in REPL", "nytrix.runFileInRepl", "Use :run on the active file inside the persistent REPL.", "REPL"],
+      ["Reset REPL", "nytrix.resetRepl", "Reset the persistent REPL state without closing the terminal.", "REPL"],
+      ["Clear REPL Screen", "nytrix.clearRepl", "Clear the REPL display while keeping its state alive.", "REPL"]
+    ]],
+    ["Inspect", [
+      ["Show Symbol Hover", "nytrix.showHover", "Open the richer Nytrix hover card for the symbol at the cursor.", "Inspect"],
+      ["Show Signature Help", "nytrix.showSignatureHelp", "Preview the active call signature and parameter list.", "Inspect"],
+      ["Go to Definition", "nytrix.goToDefinition", "Jump to the best definition match for the symbol at the cursor.", "Inspect"],
+      ["Peek Definition", "nytrix.peekDefinition", "Preview the symbol definition inline without leaving the editor.", "Inspect"],
+      ["Find Definition by Name", "nytrix.findDefinitionByName", "Type a function or symbol name and jump to the best indexed match.", "Inspect"],
+      ["Find References", "nytrix.findReferences", "List symbol usages across the workspace.", "Inspect"],
+      ["Go to Symbol in File", "nytrix.gotoDocumentSymbol", "Quick-jump to a symbol inside the current file.", "Inspect"],
+      ["Go to Symbol in Workspace", "nytrix.gotoWorkspaceSymbol", "Search symbols across the indexed workspace and stdlib.", "Inspect"]
+    ]],
+    ["Docs", [
+      ["Search Docs / API", "nytrix.searchDocs", "Search ny-doc across stdlib modules, symbols, docs, and keyword tags.", "Docs"],
+      ["Search Docs for Selection", "nytrix.searchDocsForSelection", "Search ny-doc for the selected text or symbol under cursor.", "Docs"]
+    ]]
+  ] : [];
+  const sections = [...fileSections, ["Workspace", [
+    ["Install / Update Nytrix Toolchain", "nytrix.installToolchain", "Clone or refresh the official Nytrix repo, build the toolchain, and wire the extension settings automatically.", "Tools"],
+    ["Run Runtime Tests", "nytrix.runTests", "Run the runtime suite through ny-test.", "Tests"],
+    ["Show Toolchain", "nytrix.showToolchain", "Inspect resolved ny / ny-lsp / formatter / debug paths.", "Tools"],
+    ["Open Settings", "nytrix.openSettings", "Open this extension's settings with the Nytrix filter applied.", "Config"],
+    ["Open Extension Details", "nytrix.openDetails", "Open the full Nytrix extension reference.", "Docs"],
+    ["Show Output", "nytrix.showOutput", "Reveal the shared Nytrix output channel.", "Output"],
+    ["Clear Output", "nytrix.clearOutput", "Clear the Nytrix output channel.", "Output"],
+    ["Restart Language Server", "nytrix.restartLsp", "Restart ny-lsp and refresh extension-side fallback state.", "LSP"]
+  ]]];
+  for (const [section, actions] of sections) {
+    items.push({ label: section, kind: vscode.QuickPickItemKind.Separator });
+    for (const [label, command, detail, description] of actions) {
+      items.push({ label, command, detail, description });
+    }
   }
-
-  pushSeparator("Workspace");
-  pushAction("Install / Update Nytrix Toolchain", "nytrix.installToolchain", "Clone or refresh the official Nytrix repo, build the toolchain, and wire the extension settings automatically.", "Tools");
-  pushAction("Run Runtime Tests", "nytrix.runTests", "Run the runtime suite through ny-test.", "Tests");
-  pushAction("Show Toolchain", "nytrix.showToolchain", "Inspect resolved ny / ny-lsp / formatter / debug paths.", "Tools");
-  pushAction("Show Output", "nytrix.showOutput", "Reveal the shared Nytrix output channel.", "Output");
-  pushAction("Clear Output", "nytrix.clearOutput", "Clear the Nytrix output channel.", "Output");
-  pushAction("Restart Language Server", "nytrix.restartLsp", "Restart ny-lsp and refresh extension-side fallback state.", "LSP");
 
   const picked = await vscode.window.showQuickPick(items, {
     placeHolder: editor ? "Nytrix actions for the current file" : "Nytrix workspace actions",
@@ -1635,13 +1708,36 @@ function runProcess(command, args, cwd, label, options = {}) {
   });
 }
 
-function captureProcess(command, args, cwd) {
+function captureProcess(command, args, cwd, options = {}) {
   return new Promise((resolve) => {
+    let done = false;
     const child = cp.spawn(command, args, {
       cwd,
       env: toolEnv(),
       shell: false
     });
+    const finish = (result) => {
+      if (done) {
+        return;
+      }
+      done = true;
+      if (timer) {
+        clearTimeout(timer);
+      }
+      resolve(result);
+    };
+    const timeoutMs = Math.max(0, Number(options.timeoutMs || 0) || 0);
+    const timer = timeoutMs > 0 ? setTimeout(() => {
+      try {
+        child.kill("SIGTERM");
+      } catch {}
+      finish({
+        code: -1,
+        timedOut: true,
+        output: `timed out after ${timeoutMs}ms\n`,
+        summary: { lines: 1, errors: 1, warnings: 0, notes: 0, hints: 0 }
+      });
+    }, timeoutMs) : null;
     let text = "";
     child.stdout.on("data", (chunk) => {
       text += chunk.toString();
@@ -1650,14 +1746,14 @@ function captureProcess(command, args, cwd) {
       text += chunk.toString();
     });
     child.on("error", (err) => {
-      resolve({
+      finish({
         code: -1,
         output: `${err.message}\n`,
         summary: { lines: 1, errors: 1, warnings: 0, notes: 0, hints: 0 }
       });
     });
     child.on("close", (code) => {
-      resolve({
+      finish({
         code: code || 0,
         output: text,
         summary: summarizeOutputText(text)
@@ -1778,7 +1874,7 @@ function compilerArtifactToSymbols(document, artifact) {
 }
 
 async function parseCompilerArtifactForDocument(document) {
-  if (!document || document.uri.scheme !== "file" || document.isDirty !== false) {
+  if (!shouldUseCompilerParser(document)) {
     return null;
   }
   const ny = tools(extensionContext).ny;
@@ -1787,16 +1883,23 @@ async function parseCompilerArtifactForDocument(document) {
   }
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "nytrix-vscode-parse-"));
   const artifactPath = path.join(tempDir, "parse-artifact.json");
+  let sourcePath = document.uri.fsPath;
   try {
+    if (document.isDirty) {
+      sourcePath = path.join(tempDir, path.basename(document.uri.fsPath || "buffer.ny"));
+      fs.writeFileSync(sourcePath, document.getText(), "utf8");
+    }
     const args = [
       "--color=never",
       "--stop-after=parse",
       "--emit-shapes",
       `--emit-artifact=${artifactPath}`,
       "-emit-only",
-      document.uri.fsPath
+      sourcePath
     ];
-    const result = await captureProcess(ny.path, args, workspaceCwd(document));
+    const result = await captureProcess(ny.path, args, workspaceCwd(document), {
+      timeoutMs: compilerParserTimeoutMs()
+    });
     if (result.code !== 0 || !fs.existsSync(artifactPath)) {
       return null;
     }
@@ -1809,6 +1912,33 @@ async function parseCompilerArtifactForDocument(document) {
       /* best effort temp cleanup */
     }
   }
+}
+
+function compilerParserEnabled() {
+  return cfg().get("language.compilerParser.enabled", true);
+}
+
+function compilerParserDirtyBuffersEnabled() {
+  return cfg().get("language.compilerParser.dirtyBuffers", true);
+}
+
+function compilerParserMaxDirtyBytes() {
+  return Math.max(0, Number(cfg().get("language.compilerParser.maxDirtyBytes", 200000)) || 0);
+}
+
+function compilerParserTimeoutMs() {
+  return Math.max(250, Number(cfg().get("language.compilerParser.timeoutMs", 2500)) || 2500);
+}
+
+function shouldUseCompilerParser(document) {
+  if (!compilerParserEnabled() || !document || document.uri.scheme !== "file") {
+    return false;
+  }
+  if (document.isDirty !== false && !compilerParserDirtyBuffersEnabled()) {
+    return false;
+  }
+  const maxDirtyBytes = compilerParserMaxDirtyBytes();
+  return document.isDirty === false || maxDirtyBytes === 0 || documentTextLength(document) <= maxDirtyBytes;
 }
 
 function shouldRevealOutput(options, phase, exitCode = 0) {
@@ -2200,12 +2330,35 @@ async function restartLsp(context) {
   await startLsp(context);
 }
 
+function commandLink(command, label) {
+  return `[${label}](command:${command})`;
+}
+
+function statusMarkdown(lines, actions = []) {
+  const md = new vscode.MarkdownString("", true);
+  md.isTrusted = true;
+  md.supportHtml = false;
+  md.appendMarkdown(lines.join("\n\n"));
+  if (actions.length) {
+    md.appendMarkdown("\n\n---\n\n");
+    md.appendMarkdown(actions.map(([command, label]) => commandLink(command, label)).join(" · "));
+  }
+  return md;
+}
+
 function setLspStatus(text, tooltip, command = "nytrix.showToolchain") {
   if (!lspStatus) {
     return;
   }
   lspStatus.text = text;
-  lspStatus.tooltip = `${tooltip}\nClick to ${command === "nytrix.installToolchain" ? "install Nytrix" : "inspect the Nytrix toolchain"}.`;
+  lspStatus.tooltip = statusMarkdown([
+    "**Nytrix Language Server**",
+    tooltip
+  ], [
+    [command, command === "nytrix.installToolchain" ? "Install toolchain" : "Show toolchain"],
+    ["nytrix.restartLsp", "Restart LSP"],
+    ["nytrix.openSettings", "Settings"]
+  ]);
   lspStatus.command = command;
   lspStatus.show();
 }
@@ -2223,14 +2376,17 @@ function updateStatus() {
   const modeMeta = runModeMeta();
   const revealMeta = outputRevealMeta();
   runStatus.text = modeMeta.statusText;
-  runStatus.tooltip = [
-    "Click for Nytrix quick actions",
-    `run-mode: ${modeMeta.label}`,
-    `output-reveal: ${revealMeta.label}`,
-    `ny: ${t.ny.path || "not found"} (${t.ny.source})`,
-    `ny-lsp: ${t.lsp.path || "not found"} (${t.lsp.source})`,
-    `bootstrap: ${bootstrapMode()} @ ${bootstrapRoot()}`
-  ].join("\n");
+  runStatus.tooltip = statusMarkdown([
+    "**Nytrix**",
+    `Run mode: **${modeMeta.label}**  \nOutput reveal: **${revealMeta.label}**`,
+    `Compiler: \`${t.ny.path || "not found"}\` (${t.ny.source})  \nLSP: \`${t.lsp.path || "not found"}\` (${t.lsp.source})`,
+    `Bootstrap: **${bootstrapMode()}** at \`${bootstrapRoot()}\``
+  ], [
+    ["nytrix.showActions", "Actions"],
+    ["nytrix.searchDocs", "Docs"],
+    ["nytrix.showToolchain", "Toolchain"],
+    ["nytrix.openSettings", "Settings"]
+  ]);
   runStatus.show();
 }
 
@@ -2264,6 +2420,7 @@ async function showToolchain() {
   output.appendLine("");
   appendOutputSection("tools", {
     fmt: `${t.fmt.path || "not found"} (${t.fmt.source})`,
+    doc: `${t.doc.path || "not found"} (${t.doc.source})`,
     test: `${t.test.path || "not found"} (${t.test.source})`,
     perf: `${t.perf.path || "not found"} (${t.perf.source})`
   });
@@ -2559,6 +2716,20 @@ function completionKind(kind) {
   }
 }
 
+function semanticTokenType(kind) {
+  switch (kind) {
+    case "module": return "namespace";
+    case "layout":
+    case "struct": return "class";
+    case "enum": return "enum";
+    case "type": return "type";
+    case "operator": return "operator";
+    case "def": return "property";
+    case "mut": return "variable";
+    default: return "function";
+  }
+}
+
 function kindLabel(kind) {
   switch (kind) {
     case "module": return "Module";
@@ -2768,6 +2939,10 @@ class NytrixSymbolIndex {
   constructor() {
     this.docs = new Map();
     this.compilerPending = new Map();
+    this.compilerFacts = {
+      types: new Set(),
+      typeGroups: new Set()
+    };
     this.workspaceReady = false;
     this.watcher = vscode.workspace && typeof vscode.workspace.createFileSystemWatcher === "function"
       ? vscode.workspace.createFileSystemWatcher("**/*.ny")
@@ -2854,7 +3029,7 @@ class NytrixSymbolIndex {
   }
 
   async refreshCompilerSymbols(document) {
-    if (!isNytrixDocument(document) || document.uri.scheme !== "file" || document.isDirty !== false) {
+    if (!isNytrixDocument(document) || !shouldUseCompilerParser(document)) {
       return null;
     }
     const key = document.uri.toString();
@@ -2871,6 +3046,7 @@ class NytrixSymbolIndex {
       const artifact = await parseCompilerArtifactForDocument(document);
       const symbols = compilerArtifactToSymbols(document, artifact);
       if (symbols) {
+        this.updateCompilerFacts(artifact);
         this.docs.set(key, {
           uri: document.uri,
           symbols,
@@ -2888,6 +3064,27 @@ class NytrixSymbolIndex {
     return pending;
   }
 
+  updateCompilerFacts(artifact) {
+    if (!artifact || !artifact.type_groups || typeof artifact.type_groups !== "object") {
+      return;
+    }
+    for (const [group, names] of Object.entries(artifact.type_groups)) {
+      this.compilerFacts.typeGroups.add(group);
+      if (Array.isArray(names)) {
+        for (const name of names) {
+          this.compilerFacts.types.add(String(name));
+        }
+      }
+    }
+  }
+
+  compilerCompletionNames() {
+    return {
+      types: [...this.compilerFacts.types].sort(),
+      typeGroups: [...this.compilerFacts.typeGroups].sort()
+    };
+  }
+
   async ensureDocument(document) {
     if (!isNytrixDocument(document) || document.uri.scheme !== "file") {
       return [];
@@ -2898,7 +3095,7 @@ class NytrixSymbolIndex {
     if (!current || current.stamp !== stamp) {
       this.updateDocument(document);
     }
-    if (document.isDirty === false) {
+    if (shouldUseCompilerParser(document)) {
       await this.refreshCompilerSymbols(document);
     }
     return (this.docs.get(key) || { symbols: [] }).symbols;
@@ -2950,7 +3147,6 @@ class NytrixSymbolIndex {
   }
 
   documentSymbols(document) {
-    this.updateDocument(document);
     return (this.docs.get(document.uri.toString()) || { symbols: [] }).symbols;
   }
 
@@ -3099,6 +3295,30 @@ class NytrixDocumentSymbolProvider {
   }
 }
 
+class NytrixSemanticTokensProvider {
+  constructor(index) { this.index = index; }
+  async provideDocumentSemanticTokens(document) {
+    if (lspOwnsLanguageFeatures()) {
+      return null;
+    }
+    const symbols = await this.index.ensureDocument(document);
+    const builder = new vscode.SemanticTokensBuilder();
+    for (const symbol of symbols) {
+      const range = symbol.selectionRange || symbol.range;
+      if (!range || range.start.line !== range.end.line) {
+        continue;
+      }
+      const length = Math.max(1, range.end.character - range.start.character);
+      const tokenType = semanticTokenType(symbol.kind);
+      const tokenIndex = SEMANTIC_TOKEN_TYPES.indexOf(tokenType);
+      if (tokenIndex >= 0) {
+        builder.push(range.start.line, range.start.character, length, tokenIndex, 0);
+      }
+    }
+    return builder.build();
+  }
+}
+
 class NytrixWorkspaceSymbolProvider {
   constructor(index) { this.index = index; }
   async provideWorkspaceSymbols(query) {
@@ -3126,6 +3346,17 @@ class NytrixCompletionProvider {
     }
     for (const bi of NYTRIX_BUILTINS) {
       items.push(new vscode.CompletionItem(bi, vscode.CompletionItemKind.Function));
+    }
+    const compilerNames = this.index.compilerCompletionNames();
+    for (const name of compilerNames.types) {
+      const item = new vscode.CompletionItem(name, vscode.CompletionItemKind.TypeParameter);
+      item.detail = "compiler type";
+      items.push(item);
+    }
+    for (const name of compilerNames.typeGroups) {
+      const item = new vscode.CompletionItem(name, vscode.CompletionItemKind.TypeParameter);
+      item.detail = "compiler type group";
+      items.push(item);
     }
     for (const s of await this.index.allSymbols()) {
       const item = new vscode.CompletionItem(s.name, completionKind(s.kind));
@@ -3242,10 +3473,10 @@ class NytrixDebugAdapterFactory {
       });
     }
     const cfgPath = expandVars(session.configuration.dapPath || cfg().get("debugAdapter.path", ""));
-    let dap = cfgPath && isRunnable(cfgPath) ? { path: cfgPath, source: "launch/settings" } : tools().dap;
+    const dap = cfgPath && isRunnable(cfgPath) ? { path: cfgPath, source: "launch/settings" } : { path: "", source: "not found" };
     if (!dap.path) {
       vscode.window.showErrorMessage(
-        "Nytrix debug adapter not found. Set nytrix.debugAdapter.path or NYTRIX_DAP to enable stepping."
+        "Nytrix external debug adapter not found. Keep the built-in adapter enabled or set nytrix.debugAdapter.path explicitly."
       );
       return undefined;
     }
@@ -3323,6 +3554,7 @@ module.exports = {
     formatDiagnosticCountsLabel,
     formatErrorLensMessage,
     NytrixSymbolIndex,
+    NytrixSemanticTokensProvider,
     NytrixDebugConfigurationProvider,
     resolveNytrixDebugConfig,
     withDwarfVersion,
@@ -3330,6 +3562,7 @@ module.exports = {
     findDefinitionByName,
     runtimeSuitePath,
     compilerArtifactToSymbols,
+    semanticTokenType,
     parseJsonText,
     symbolRangeFromCompiler
   }

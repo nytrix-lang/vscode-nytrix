@@ -2,31 +2,9 @@
 "use strict";
 
 const assert = require("assert");
-const fs = require("fs");
-const Module = require("module");
 const os = require("os");
 const path = require("path");
-
-function findRepoRoot() {
-  let current = __dirname;
-  while (true) {
-    if (
-      fs.existsSync(path.join(current, "tmp", "projects", "vscode-nytrix")) &&
-      fs.existsSync(path.join(current, "lib"))
-    ) {
-      return current;
-    }
-    const parent = path.dirname(current);
-    if (parent === current) {
-      return path.resolve(__dirname, "../../../..");
-    }
-    current = parent;
-  }
-}
-
-function extensionRoot() {
-  return process.env.NYTRIX_VSCODE_EXTENSION_ROOT || path.join(findRepoRoot(), "tmp", "projects", "vscode-nytrix");
-}
+const { loadExtensionWithVscode } = require("./vscode_stub");
 
 const fakeVscode = {
   workspace: {
@@ -49,16 +27,7 @@ const fakeVscode = {
   languages: {}
 };
 
-const originalLoad = Module._load;
-Module._load = function patchedLoad(request, parent, isMain) {
-  if (request === "vscode") {
-    return fakeVscode;
-  }
-  return originalLoad.call(this, request, parent, isMain);
-};
-
-const extension = require(path.join(extensionRoot(), "src", "extension.js"));
-Module._load = originalLoad;
+const extension = loadExtensionWithVscode(fakeVscode);
 
 function main() {
   const root = extension.__test.bootstrapRoot();

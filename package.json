@@ -2,11 +2,13 @@
   "name": "nytrix",
   "icon": "logo.png",
   "publisher": "x3ric",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "displayName": "Nytrix",
   "description": "Nytrix language support: syntax, LSP diagnostics, run/debug, and tooling.",
   "categories": [
-    "Programming Languages"
+    "Programming Languages",
+    "Debuggers",
+    "Formatters"
   ],
   "keywords": [
     "nytrix",
@@ -22,30 +24,32 @@
     "url": "https://github.com/nytrix-lang/nytrix.git"
   },
   "bugs": "https://github.com/nytrix-lang/nytrix/issues",
+  "qna": "https://github.com/nytrix-lang/nytrix/issues",
+  "galleryBanner": {
+    "color": "#0D1117",
+    "theme": "dark"
+  },
+  "extensionKind": [
+    "workspace"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "Syntax highlighting and static editor features work. Running, debugging, formatting, tests, bootstrap, and tool commands require a trusted workspace."
+    },
+    "virtualWorkspaces": false
+  },
   "engines": {
     "vscode": "^1.84.0"
   },
   "main": "./src/extension.js",
-  "files": [
-    "src/**",
-    "snippets/**",
-    "language-configuration.json",
-    "nshape-language-configuration.json",
-    "shader-language-configuration.json",
-    "nytrix.tmLanguage.json",
-    "nshape.tmLanguage.json",
-    "shader.tmLanguage.json",
-    "markdown-nytrix.tmLanguage.json",
-    "README.md",
-    "DETAILS.md",
-    "CHANGELOG.md",
-    "LICENSE.md",
-    "logo.png",
-    "node_modules/**"
-  ],
   "scripts": {
-    "check": "node --check src/extension.js && node --check src/nytrixDebugAdapter.js",
-    "package": "vsce package"
+    "check": "node --check src/extension.js && node --check src/nytrixDebugAdapter.js && node --check scripts/package.js",
+    "test:js": "node test/metadata_smoke.js && node test/package_smoke.js && node test/bootstrap_smoke.js && node test/code_actions_smoke.js && node test/debug_symbol_smoke.js",
+    "validate": "npm run check && npm run test:js",
+    "prepackage": "npm run validate",
+    "package": "node scripts/package.js",
+    "package:ls": "node scripts/package.js --list"
   },
   "activationEvents": [
     "onLanguage:nytrix",
@@ -71,6 +75,8 @@
     "onCommand:nytrix.formatFile",
     "onCommand:nytrix.optimizeFile",
     "onCommand:nytrix.analyzeFile",
+    "onCommand:nytrix.searchDocs",
+    "onCommand:nytrix.searchDocsForSelection",
     "onCommand:nytrix.traceFile",
     "onCommand:nytrix.dumpAst",
     "onCommand:nytrix.dumpLlvm",
@@ -78,6 +84,8 @@
     "onCommand:nytrix.runTests",
     "onCommand:nytrix.profileFile",
     "onCommand:nytrix.restartLsp",
+    "onCommand:nytrix.openSettings",
+    "onCommand:nytrix.openDetails",
     "onCommand:nytrix.installToolchain",
     "onCommand:nytrix.showToolchain",
     "onCommand:nytrix.pickProcess",
@@ -321,6 +329,18 @@
         "icon": "$(search)"
       },
       {
+        "command": "nytrix.searchDocs",
+        "title": "Nytrix: Search Docs / API",
+        "category": "Nytrix",
+        "icon": "$(book)"
+      },
+      {
+        "command": "nytrix.searchDocsForSelection",
+        "title": "Nytrix: Search Docs for Selection",
+        "category": "Nytrix",
+        "icon": "$(symbol-keyword)"
+      },
+      {
         "command": "nytrix.traceFile",
         "title": "Nytrix: Trace File",
         "category": "Nytrix",
@@ -361,6 +381,18 @@
         "title": "Nytrix: Restart Language Server",
         "category": "Nytrix",
         "icon": "$(debug-restart)"
+      },
+      {
+        "command": "nytrix.openSettings",
+        "title": "Nytrix: Open Settings",
+        "category": "Nytrix",
+        "icon": "$(settings-gear)"
+      },
+      {
+        "command": "nytrix.openDetails",
+        "title": "Nytrix: Open Extension Details",
+        "category": "Nytrix",
+        "icon": "$(book)"
       },
       {
         "command": "nytrix.installToolchain",
@@ -516,6 +548,11 @@
           "group": "navigation@6"
         },
         {
+          "command": "nytrix.searchDocsForSelection",
+          "when": "resourceLangId == nytrix",
+          "group": "navigation@6.5"
+        },
+        {
           "command": "nytrix.gotoDocumentSymbol",
           "when": "resourceLangId == nytrix",
           "group": "navigation@7"
@@ -656,6 +693,14 @@
           "when": "resourceLangId == nytrix"
         },
         {
+          "command": "nytrix.searchDocs",
+          "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.searchDocsForSelection",
+          "when": "resourceLangId == nytrix"
+        },
+        {
           "command": "nytrix.traceFile",
           "when": "resourceLangId == nytrix"
         },
@@ -680,6 +725,12 @@
         },
         {
           "command": "nytrix.installToolchain"
+        },
+        {
+          "command": "nytrix.openSettings"
+        },
+        {
+          "command": "nytrix.openDetails"
         },
         {
           "command": "nytrix.goToDefinition",
@@ -843,6 +894,49 @@
         "when": "editorLangId == nytrix"
       }
     ],
+    "walkthroughs": [
+      {
+        "id": "nytrix.getStarted",
+        "title": "Get Started with Nytrix",
+        "description": "Set up the Nytrix toolchain, run code, inspect docs, and enable the workflows most language users expect.",
+        "steps": [
+          {
+            "id": "nytrix.toolchain",
+            "title": "Connect the Nytrix toolchain",
+            "description": "Run **Nytrix: Show Toolchain** to inspect detected binaries, or **Nytrix: Install Toolchain** to clone/build the official tools after approval.",
+            "completionEvents": [
+              "onCommand:nytrix.showToolchain",
+              "onCommand:nytrix.installToolchain"
+            ]
+          },
+          {
+            "id": "nytrix.actions",
+            "title": "Use the compact action surface",
+            "description": "Open a `.ny` file and run **Nytrix: Show Actions** for run, check, format, debug, REPL, docs, and symbol navigation from one picker.",
+            "completionEvents": [
+              "onCommand:nytrix.showActions"
+            ]
+          },
+          {
+            "id": "nytrix.docs",
+            "title": "Search the API before writing code",
+            "description": "Use **Nytrix: Search Docs / API** or **Search Docs for Selection** to query `ny-doc` across stdlib modules, symbols, docs, and keyword tags.",
+            "completionEvents": [
+              "onCommand:nytrix.searchDocs",
+              "onCommand:nytrix.searchDocsForSelection"
+            ]
+          },
+          {
+            "id": "nytrix.debug",
+            "title": "Debug with the built-in adapter",
+            "description": "Use **Nytrix: Debug File** for a launch config backed by `ny` and `gdb`, or add a `nytrix` debug configuration from `launch.json`.",
+            "completionEvents": [
+              "onCommand:nytrix.debugFile"
+            ]
+          }
+        ]
+      }
+    ],
     "breakpoints": [
       {
         "language": "nytrix"
@@ -896,7 +990,7 @@
               },
               "dapPath": {
                 "type": "string",
-                "description": "Path to a Nytrix Debug Adapter Protocol server. Falls back to nytrix.debugAdapter.path or NYTRIX_DAP."
+                "description": "Explicit path to an external Nytrix Debug Adapter Protocol server when the built-in adapter is disabled."
               },
               "dapArgs": {
                 "type": "array",
@@ -1118,6 +1212,11 @@
           "default": "",
           "description": "Path to ny-lsp. Empty means auto-detect from workspace, ~/nytrix, environment, then PATH."
         },
+        "nytrix.doc.path": {
+          "type": "string",
+          "default": "",
+          "description": "Path to ny-doc. Empty means auto-detect from workspace, ~/nytrix, environment, then PATH."
+        },
         "nytrix.bootstrap.mode": {
           "type": "string",
           "enum": [
@@ -1154,12 +1253,12 @@
         "nytrix.debugAdapter.path": {
           "type": "string",
           "default": "",
-          "description": "Path to an external Nytrix Debug Adapter Protocol server. Used when nytrix.debugAdapter.useInternal is false."
+          "description": "Explicit path to an external Nytrix Debug Adapter Protocol server. Leave empty for the built-in adapter."
         },
         "nytrix.debugAdapter.useInternal": {
           "type": "boolean",
           "default": true,
-          "description": "Use the built-in gdb/MI-backed Nytrix DAP adapter. Disable to use nytrix.debugAdapter.path or NYTRIX_DAP."
+          "description": "Use the built-in gdb/MI-backed Nytrix debug adapter. Disable only when nytrix.debugAdapter.path points to a compatible external server."
         },
         "nytrix.debugAdapter.arguments": {
           "type": "array",
@@ -1220,7 +1319,7 @@
         "nytrix.debug.outputDir": {
           "type": "string",
           "default": "",
-          "description": "Directory for temporary debug ELFs. Empty uses build/cache/vscode-dap under the workspace."
+          "description": "Directory for temporary debug ELFs. Empty uses .nytrix-cache/vscode-debug under the workspace."
         },
         "nytrix.debug.sourceFileMap": {
           "type": "object",
@@ -1300,6 +1399,28 @@
           "type": "boolean",
           "default": true,
           "description": "Run ny-fmt analyzer hints on save and surface style / maintainability / optimization guidance alongside compiler diagnostics."
+        },
+        "nytrix.language.compilerParser.enabled": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Use the real Nytrix compiler parser (`ny --stop-after=parse --emit-artifact --emit-shapes`) for extension fallback symbols and type completions whenever `ny-lsp` is unavailable or still starting."
+        },
+        "nytrix.language.compilerParser.dirtyBuffers": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Also run the compiler parser on unsaved editor buffers for fallback symbols and semantic tokens. This keeps editor intelligence aligned with syntax changes while typing."
+        },
+        "nytrix.language.compilerParser.maxDirtyBytes": {
+          "type": "number",
+          "default": 200000,
+          "minimum": 0,
+          "markdownDescription": "Maximum unsaved buffer size parsed through the compiler fallback. `0` disables the size limit."
+        },
+        "nytrix.language.compilerParser.timeoutMs": {
+          "type": "number",
+          "default": 2500,
+          "minimum": 250,
+          "markdownDescription": "Timeout for compiler parser fallback requests. If parsing exceeds this budget, the extension keeps the last local/cache result instead of blocking editor features."
         },
         "nytrix.codeLens.enabled": {
           "type": "boolean",

@@ -2,30 +2,7 @@
 "use strict";
 
 const assert = require("assert");
-const fs = require("fs");
-const Module = require("module");
-const path = require("path");
-
-function findRepoRoot() {
-  let current = __dirname;
-  while (true) {
-    if (
-      fs.existsSync(path.join(current, "tmp", "projects", "vscode-nytrix")) &&
-      fs.existsSync(path.join(current, "lib"))
-    ) {
-      return current;
-    }
-    const parent = path.dirname(current);
-    if (parent === current) {
-      return path.resolve(__dirname, "../../../..");
-    }
-    current = parent;
-  }
-}
-
-function extensionRoot() {
-  return process.env.NYTRIX_VSCODE_EXTENSION_ROOT || path.join(findRepoRoot(), "tmp", "projects", "vscode-nytrix");
-}
+const { loadExtensionWithVscode } = require("./vscode_stub");
 
 class Position {
   constructor(line, character) {
@@ -174,16 +151,7 @@ const fakeVscode = {
   languages: {}
 };
 
-const originalLoad = Module._load;
-Module._load = function patchedLoad(request, parent, isMain) {
-  if (request === "vscode") {
-    return fakeVscode;
-  }
-  return originalLoad.call(this, request, parent, isMain);
-};
-
-const extension = require(path.join(extensionRoot(), "src", "extension.js"));
-Module._load = originalLoad;
+const extension = loadExtensionWithVscode(fakeVscode);
 
 async function main() {
   const base = extension.__test.resolveNytrixDebugConfig(
@@ -266,6 +234,15 @@ async function main() {
   assert.strictEqual(compilerSymbols.length, 1, "compiler symbol artifact should map to index symbols");
   assert.strictEqual(compilerSymbols[0].range.start.line, 0, "compiler symbol line should become zero-based");
   assert.strictEqual(compilerSymbols[0].range.start.character, 3, "compiler symbol range should select the function name");
+  index.updateCompilerFacts({
+    type_groups: {
+      integer: ["int", "u64"],
+      seq: ["list", "bytes"]
+    }
+  });
+  const compilerCompletions = index.compilerCompletionNames();
+  assert(compilerCompletions.typeGroups.includes("integer"), "compiler type groups should feed fallback completions");
+  assert(compilerCompletions.types.includes("u64"), "compiler concrete types should feed fallback completions");
   const matches = await index.searchSymbols("local_sum", current.uri.toString());
   assert(matches.length >= 2, "expected fuzzy symbol matches");
   assert.strictEqual(matches[0].name, "local_sum", "current-file exact match should rank first");

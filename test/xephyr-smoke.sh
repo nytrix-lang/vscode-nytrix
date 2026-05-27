@@ -2,8 +2,8 @@
 set -euo pipefail
 
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="${NYTRIX_REPO_ROOT:-$(cd "$TEST_DIR/../../../.." && pwd)}"
-ROOT="${NYTRIX_VSCODE_EXTENSION_ROOT:-$REPO_ROOT/tmp/projects/vscode-nytrix}"
+ROOT="${NYTRIX_VSCODE_EXTENSION_ROOT:-$(cd "$TEST_DIR/.." && pwd)}"
+REPO_ROOT="${NYTRIX_REPO_ROOT:-$(cd "$ROOT/.." && pwd)}"
 TEST_ROOT="${NYTRIX_VSCODE_TEST_ROOT:-/tmp/nytrix-vscode-test}"
 LOCK_DIR="${TEST_ROOT}.lock"
 HOST_DISPLAY="${DISPLAY:-}"
