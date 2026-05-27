@@ -6,7 +6,7 @@ TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 find_repo_root() {
   local current="$TEST_DIR"
   while [[ "$current" != "/" ]]; do
-    if [[ -d "$current/tmp/projects/vscode-nytrix" && -d "$current/lib" ]]; then
+    if [[ -d "$current/lib" && -x "$current/build/release/ny" ]]; then
       printf '%s\n' "$current"
       return 0
     fi
@@ -15,11 +15,13 @@ find_repo_root() {
   cd "$TEST_DIR/../../../.." && pwd
 }
 
+EXT_ROOT="${NYTRIX_VSCODE_EXTENSION_ROOT:-$(cd "$TEST_DIR/.." && pwd)}"
 REPO_ROOT="${NYTRIX_REPO_ROOT:-$(find_repo_root)}"
-EXT_ROOT="${NYTRIX_VSCODE_EXTENSION_ROOT:-$REPO_ROOT/tmp/projects/vscode-nytrix}"
 export NYTRIX_VSCODE_EXTENSION_ROOT="$EXT_ROOT"
 
 run_js_smoke() {
+  node "$TEST_DIR/metadata_smoke.js"
+  node "$TEST_DIR/package_smoke.js"
   node "$TEST_DIR/bootstrap_smoke.js"
   node "$TEST_DIR/code_actions_smoke.js"
   node "$TEST_DIR/debug_symbol_smoke.js"
@@ -30,20 +32,22 @@ usage() {
 Usage: $0 <target> [args...]
 
 Targets:
-  check                 npm syntax check for the extension
-  js | unit             bootstrap + code action + debug symbol smokes
-  lsp                  raw LSP JSON-RPC smoke
-  dap                  stdio DAP smoke
-  smoke                check + js + lsp + dap
-  ui                   VS Code UI smoke
-  clickthrough         focused UI clickthrough
-  assist-ui            focused assist/code-action UI pass
-  syntax-ui            focused grammar screenshot pass
-  headless-ui          UI smoke on Xvfb
+  check                  npm syntax check
+  js | unit              metadata + package + bootstrap + action + symbol smokes
+  metadata              package/manifest drift smoke
+  package               package content and ignore-rule smoke
+  lsp                   raw LSP JSON-RPC smoke
+  dap                   stdio DAP smoke
+  smoke                 check + js + lsp + dap
+  ui                    visible VS Code UI smoke
+  clickthrough          focused UI clickthrough
+  assist-ui             focused assist/code-action UI pass
+  syntax-ui             focused grammar screenshot pass
+  headless-ui           UI smoke on Xvfb
   headless-clickthrough clickthrough on Xvfb
-  headless-syntax-ui   syntax UI pass on Xvfb
-  xephyr               launch the raw sandbox helper
-  full                 smoke + clickthrough
+  headless-syntax-ui    syntax UI pass on Xvfb
+  xephyr                launch the raw sandbox helper
+  full                  smoke + clickthrough
 EOF
 }
 
@@ -56,6 +60,12 @@ case "$target" in
     ;;
   js | unit)
     run_js_smoke
+    ;;
+  metadata)
+    node "$TEST_DIR/metadata_smoke.js"
+    ;;
+  package)
+    node "$TEST_DIR/package_smoke.js"
     ;;
   bootstrap)
     node "$TEST_DIR/bootstrap_smoke.js"

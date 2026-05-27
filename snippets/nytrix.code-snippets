@@ -18,6 +18,16 @@
     ],
     "description": "Function declaration."
   },
+  "Nytrix Documented Function": {
+    "prefix": "fndoc",
+    "body": [
+      "fn ${1:name}(${2})${3:: ${4}} {",
+      "   \"${5:Describe what this function returns.}\"",
+      "   ${6}",
+      "}"
+    ],
+    "description": "Function with a ny-doc visible docstring."
+  },
   "Nytrix Module": {
     "prefix": "module",
     "body": [
@@ -33,6 +43,27 @@
       "use ${1:std.core}"
     ],
     "description": "Import a module."
+  },
+  "Nytrix Use Math": {
+    "prefix": "usemath",
+    "body": [
+      "use std.math"
+    ],
+    "description": "Import std.math."
+  },
+  "Nytrix Use Math Alias": {
+    "prefix": "usemathas",
+    "body": [
+      "use std.math as ${1:math}"
+    ],
+    "description": "Import std.math with an alias."
+  },
+  "Nytrix Use String": {
+    "prefix": "usestr",
+    "body": [
+      "use std.core.str"
+    ],
+    "description": "Import std.core.str."
   },
   "Nytrix Struct": {
     "prefix": "struct",
@@ -87,6 +118,13 @@
       "}"
     ],
     "description": "Case expression."
+  },
+  "Nytrix Assert": {
+    "prefix": "assert",
+    "body": [
+      "assert(${1:condition}, \"${2:message}\")"
+    ],
+    "description": "Runtime assertion with a message."
   },
   "Nytrix Comptime Template": {
     "prefix": "ctmpl",

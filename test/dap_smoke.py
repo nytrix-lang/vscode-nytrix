@@ -129,7 +129,7 @@ def events_named(messages, name):
 
 
 def run_auto_entry_smoke(args):
-    with tempfile.TemporaryDirectory(prefix="ny-dap-auto-entry-") as td:
+    with tempfile.TemporaryDirectory(prefix="nytrix-debug-auto-entry-") as td:
         program = os.path.join(td, "script_debug.ny")
         out_dir = os.path.join(td, "out")
         with open(program, "w", encoding="utf-8") as f:
@@ -238,7 +238,7 @@ def run_auto_entry_smoke(args):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--node", default="node")
-    ap.add_argument("--adapter", default=os.environ.get("NYTRIX_DAP_ADAPTER", str(EXT_ROOT / "src" / "nytrixDebugAdapter.js")))
+    ap.add_argument("--adapter", default=os.environ.get("NYTRIX_DEBUG_ADAPTER", str(EXT_ROOT / "src" / "nytrixDebugAdapter.js")))
     ap.add_argument("--ny", default=default_tool("NYTRIX_BIN", pathlib.Path("build") / "release" / "ny", "ny"))
     ap.add_argument("--gdb", default=os.environ.get("NYTRIX_GDB_BIN") or os.environ.get("GDB_BIN") or shutil.which("gdb") or "gdb")
     args = ap.parse_args()
@@ -247,7 +247,7 @@ def main():
     args.ny = require_tool(args.ny, "ny")
     args.gdb = require_tool(args.gdb, "gdb")
 
-    with tempfile.TemporaryDirectory(prefix="ny-dap-smoke-") as td:
+    with tempfile.TemporaryDirectory(prefix="nytrix-debug-smoke-") as td:
         program = os.path.join(td, "debug_test.ny")
         out_dir = os.path.join(td, "out")
         with open(program, "w", encoding="utf-8") as f:
@@ -300,7 +300,7 @@ def main():
                 "trace": False,
                 "compilerArgs": ["--dwarf-version=5"],
                 "args": ["alpha", "beta"],
-                "env": {"NYTRIX_DAP_SMOKE_ENV": "nytrix-env-ok"},
+                "env": {"NYTRIX_DEBUG_SMOKE_ENV": "nytrix-env-ok"},
                 "sourceFileMap": {td: td},
             })
             launch_seq = seq
@@ -433,7 +433,7 @@ def main():
             output_text = "\n".join(msg.get("body", {}).get("output", "") for msg in events_named(messages, "output"))
             assert_true("debug_test.ny" in output_text, "debug session output never referenced debug_test.ny")
             assert_true("alpha beta" in output_text, "debug launch output did not report program args")
-            assert_true("NYTRIX_DAP_SMOKE_ENV" in output_text, "debug launch output did not report env key")
+            assert_true("NYTRIX_DEBUG_SMOKE_ENV" in output_text, "debug launch output did not report env key")
             assert_true("source-map" in output_text and "1 rule" in output_text, "debug launch output did not report source map")
             assert_true("--dwarf-version=5" in output_text, "debug launch output did not report DWARF compiler arg")
             assert_true("[backtrace]" in output_text and "twice" in output_text, "debug console backtrace output missing")

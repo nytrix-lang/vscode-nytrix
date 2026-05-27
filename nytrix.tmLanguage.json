@@ -792,12 +792,24 @@
           "end": "$",
           "patterns": [
             {
-              "name": "support.type.module.nytrix",
-              "match": "[A-Za-z_][A-Za-z0-9_]*"
-            },
-            {
               "name": "keyword.control.import.alias.nytrix",
               "match": "\\bas\\b"
+            },
+            {
+              "name": "entity.name.alias.import.nytrix",
+              "match": "(?<=\\bas\\s)[A-Za-z_][A-Za-z0-9_]*"
+            },
+            {
+              "name": "support.type.module.path.std.nytrix",
+              "match": "\\bstd(?:\\.[A-Za-z_][A-Za-z0-9_]*)*\\b"
+            },
+            {
+              "name": "entity.name.namespace.import.nytrix",
+              "match": "\\b[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)+\\b"
+            },
+            {
+              "name": "support.type.module.segment.nytrix",
+              "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b"
             },
             {
               "name": "punctuation.accessor.dot.nytrix",
