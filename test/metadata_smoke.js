@@ -75,7 +75,7 @@ function assertLineListContains(name, source, required) {
 }
 
 function main() {
-  assert.strictEqual(manifest.version, "0.1.2", "package version should be bumped");
+  assert.strictEqual(manifest.version, "0.1.3", "package version should be bumped");
   assert.strictEqual(manifest.scripts.prepackage, "npm run validate", "package should validate before building the VSIX");
   assert.strictEqual(manifest.scripts.package, "node scripts/package.js", "package should use deterministic package-lock dependency discovery");
   assert.strictEqual(manifest.scripts["package:ls"], "node scripts/package.js --list", "package listing should use the same deterministic dependency discovery");

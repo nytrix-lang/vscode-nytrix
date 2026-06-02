@@ -1,7 +1,6 @@
-Nytrix VS Code Tests
-====================
+# Nytrix VS Code Tests
 
-TLDR:
+Run:
 
 ```sh
 cd /home/e/vscode-nytrix
@@ -12,24 +11,22 @@ cd test
 ./run.sh headless-clickthrough
 ```
 
-Use `npm run validate` for fast repo hygiene. Use `./run.sh smoke` when you
-also want live `ny-lsp` and debug-adapter coverage. Use a UI target only when
-you changed editor wiring, menus, keybindings, highlighting, or sandbox launch.
+Use `npm run validate` for JS and manifest checks. Use `./run.sh smoke` for
+`ny-lsp` and debug-adapter protocol checks. Use a UI target when changing
+editor wiring, menus, keybindings, highlighting, or sandbox launch.
 
-Test Map
---------
+## Test Map
 
-| Target | What it proves | Cost |
+| Target | Covers | Runtime |
 | --- | --- | --- |
-| `npm run validate` | JS syntax, manifest metadata, packaging rules, bootstrap/code-action/symbol smokes | fast |
-| `./run.sh smoke` | `validate`-style JS smokes plus raw LSP and DAP protocol checks | medium |
-| `./run.sh clickthrough` | Visible VS Code session with command palette, diagnostics, and editor flow | slow |
-| `./run.sh headless-clickthrough` | Same UI path through `Xvfb`, suitable for unattended runs | slow |
-| `./run.sh syntax-ui` | Focused grammar/highlighting screenshots | slow |
-| `./run.sh full` | Protocol smoke plus visible clickthrough | slowest |
+| `npm run validate` | JS syntax, manifest metadata, packaging rules, bootstrap/code-action/symbol smokes | short |
+| `./run.sh smoke` | JS smokes plus raw LSP and DAP protocol checks | medium |
+| `./run.sh clickthrough` | Visible VS Code session with command palette, diagnostics, and editor flow | long |
+| `./run.sh headless-clickthrough` | Same UI path through `Xvfb` | long |
+| `./run.sh syntax-ui` | Grammar/highlighting screenshots | long |
+| `./run.sh full` | Protocol smoke plus visible clickthrough | longest |
 
-Files
------
+## Files
 
 - `metadata_smoke.js`: package/manifest drift, commands, settings, walkthroughs.
 - `package_smoke.js`: package contents and generated-output guards.
@@ -40,10 +37,9 @@ Files
 - `dap_smoke.py`: raw stdio DAP behavior.
 - `ui_smoke.py`: automated VS Code session and screenshots.
 - `xephyr-smoke.sh`: isolated VS Code sandbox launcher.
-- `keysend.py` / `keysend.sh`: targeted X11 input helper.
+- `keysend.py`: targeted X11 input helper; `keysend.sh` is its wrapper.
 
-Useful Commands
----------------
+## Commands
 
 ```sh
 ./run.sh metadata
@@ -63,8 +59,7 @@ DISPLAY=:99 ./keysend.sh key F12
 DISPLAY=:99 ./keysend.sh click-window 0x<window-id> 960 650 1
 ```
 
-Sandbox Rules
--------------
+## Sandbox Rules
 
 - Tests use private `user-data`, `extensions`, and artifact directories.
 - UI runs auto-pick a display from `:99..:109` unless
