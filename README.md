@@ -1,35 +1,34 @@
 # Nytrix
 
-Nytrix language support for VS Code.
+VS Code extension for Nytrix.
 
-Nytrix project and source repositories live at [github.com/nytrix-lang][Nytrix].
+Project repositories: [github.com/nytrix-lang][Nytrix].
 
-## What You Get
+## Support
 
-- Syntax highlighting for `.ny` and `.nshape`.
-- Markdown codeblock highlighting for `ny`, `nytrix`, and `nshape`.
-- `ny-lsp` diagnostics, hover, definitions, references, symbols, completion,
+- Highlighting for `.ny` files.
+- Markdown highlighting for `ny` and `nytrix` code fences.
+- `ny-lsp` diagnostics, hover, definitions, references, symbols, completions,
   and signature help when the language server is available.
-- Compiler-backed fallback symbols, semantic tokens, and type completions from
-  `ny --stop-after=parse --emit-artifact --emit-shapes` when LSP is unavailable.
-- Run, check, format, expand, analyze, trace, profile, REPL, and debug commands.
-- `ny-doc` search commands for docs, modules, symbols, and API keyword tags.
-- Built-in gdb/MI debug adapter for Nytrix launch/attach workflows.
-- Toolchain discovery from settings, environment variables, workspace builds,
-  managed bootstrap roots, and `PATH`.
+- Compiler-backed fallback symbols, semantic tokens, and type completions when
+  LSP is unavailable.
+- Commands for run, check, format, expand, analyze, trace, profile, REPL,
+  documentation, and debug.
+- Tool discovery from settings, environment variables, workspace builds,
+  bootstrap roots, and `PATH`.
 
 ## Install
 
-The extension is available as `x3ric.nytrix` from the
-[VS Code Marketplace][vscm] and [Open VSX][ovsx].
+Extension id: `x3ric.nytrix`
 
+[VS Code Marketplace][vscm] / [Open VSX][ovsx]
 
 [Nytrix]: https://github.com/nytrix-lang
 [vscm]: https://marketplace.visualstudio.com/items?itemName=x3ric.nytrix
 [ovsx]: https://open-vsx.org/extension/x3ric/nytrix
 [license]: https://opensource.org/license/mit
 
-## Quick Start
+## Local Commands
 
 ```sh
 npm install
@@ -37,10 +36,9 @@ npm run validate
 npm run package:ls
 ```
 
-Open a `.ny` or `.nshape` file, then run `Nytrix: Show Actions` from the command
-palette for the compact command surface.
+Open a `.ny` file and run `Nytrix: Show Actions` from the command palette.
 
-## Useful Commands
+## Commands
 
 - `Nytrix: Show Actions`
 - `Nytrix: Run File`
@@ -54,10 +52,10 @@ palette for the compact command surface.
 - `Nytrix: Open Settings`
 - `Nytrix: Open Extension Details`
 
-## More
+## Reference
 
-Detailed commands, settings, tool discovery, debugging notes, and test harness
-docs live in [DETAILS.md](DETAILS.md).
+Commands, settings, tool discovery, debugging notes, and test details live in
+[DETAILS.md](DETAILS.md).
 
 ## License
 

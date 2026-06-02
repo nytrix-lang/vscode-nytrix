@@ -1,41 +1,35 @@
 # Nytrix Extension Details
 
-Long-form reference for the Nytrix VS Code extension. Keep
-[README.md](README.md) short and user-facing; put feature, settings, debug, and
-test detail here.
+Reference for the Nytrix VS Code extension.
 
-## Features
+## Support
 
-- Rich `.ny` TextMate highlighting for modules, layouts, structs, impl blocks,
-  typed operators, attributes, f-strings, comptime syntax, `handle`, low-level
-  builtins, inline asm, and embedded JSON/XML/HTML/YAML/INI/SQL/regex-style
-  strings when their intent is detectable from surrounding Ny code.
-- `.nshape` highlighting for nynth shape metadata, plus embedded Ny and C
-  heredoc source blocks.
-- Markdown fenced code blocks tagged as `ny`, `nytrix`, or `nshape` embed the
-  matching grammar.
-- Auto-starts `ny-lsp` when available.
+- TextMate highlighting for `.ny` files.
+- Highlighting covers modules, layouts, structs, impl blocks, typed
+  operators, attributes, f-strings, comptime syntax, `handle`, low-level
+  builtins, inline asm, and detectable embedded JSON/XML/HTML/YAML/INI/SQL/regex
+  strings.
+- Markdown fenced code blocks labeled `ny` or `nytrix` use the Nytrix grammar.
+- Starts `ny-lsp` when available.
 - LSP-backed diagnostics, hover, definition, references, symbols, completion,
-  and signature help, with a lightweight extension-side symbol index fallback.
-- The fallback symbol index prefers the compiler parser artifact
-  (`ny --stop-after=parse --emit-artifact --emit-shapes`) before using local
-  regex heuristics. This keeps fallback symbols, semantic tokens, and type
-  completions aligned with the compiler as the language evolves.
+  and signature help, with an extension-side symbol index fallback.
+- The fallback symbol index can use the compiler parser artifact
+  (`ny --stop-after=parse --emit-artifact --emit-shapes`) before local regex
+  heuristics.
 - Inline Nytrix diagnostic lenses for errors, warnings, notes, and analyzer
-  hints, alongside normal squiggles and Problems entries.
-- Rich hover cards for Nytrix symbols, including function inputs, output type
-  hints, docs, and source location.
-- Quiet editor title buttons for Run and Debug, with diagnostics handled
-  automatically through `ny-lsp` when available.
-- Tool commands for public Nytrix binaries: `ny`, `ny-doc`, `ny-fmt`,
+  hints.
+- Hover cards for Nytrix symbols, including function inputs, output type hints,
+  docs, and source location.
+- Editor title buttons for Run and Debug.
+- Tool commands call Nytrix binaries: `ny`, `ny-doc`, `ny-fmt`,
   `ny-test`, `ny-perf`, and `ny-make`.
 - Built-in toolchain bootstrap: when `ny` / `ny-lsp` is missing, the extension
   asks before cloning/building `https://github.com/nytrix-lang/nytrix`, or lets
   you set explicit binary paths instead.
-- Editor helpers for `Check File`, `Expand File`, document/workspace symbol
+- Editor commands for `Check File`, `Expand File`, document/workspace symbol
   jumps, hover, signature help, references, and stdlib navigation.
-- A persistent `Nytrix REPL` workflow with send-selection/line, run-file-in-REPL,
-  and load-file-in-REPL commands.
+- REPL commands for send-selection/line, run-file-in-REPL, and
+  load-file-in-REPL.
 - Nytrix snippets for common module, function, layout, comptime-template, and
   inline-asm scaffolds.
 - VS Code tasks for run/check/expand/trace/dumps/format/analyze/tests/profile.
@@ -46,27 +40,23 @@ test detail here.
 - Automatic `ny-lsp` diagnostics while editing, with compiler diagnostics as a
   save-time fallback only when the language server is unavailable.
 
-## Editor Flow
+## Editor Commands
 
-- `Nytrix: Show Actions` opens a compact tool palette for the active file, so
-  you can run/check/expand/debug/trace/REPL, inspect symbols, and tweak run
-  behavior without hunting through the command palette.
+- `Nytrix: Show Actions` opens a picker for the active file:
+  run, check, expand, debug, trace, REPL, symbols, docs, and run settings.
 - `Nytrix: Show Output` and `Nytrix: Clear Output` manage the shared output
   channel directly.
 - `Nytrix: Install Toolchain` clones or refreshes the official Nytrix repo,
-  builds the toolchain, and writes `nytrix.path` / `nytrix.lsp.path` for you.
-  Missing-tool prompts also offer `Set Path` so managed installs are never
-  forced.
-- `Nytrix: Set Run Mode` and `Nytrix: Set Output Reveal Mode` provide quick
-  session tuning without leaving the editor.
+  builds the toolchain, and writes `nytrix.path` / `nytrix.lsp.path`.
+  Missing-tool prompts also offer `Set Path`.
+- `Nytrix: Set Run Mode` and `Nytrix: Set Output Reveal Mode` set run behavior.
 - `Nytrix: Search Docs / API` runs `ny-doc search` across modules, symbols,
-  docs, and keyword tags. `Nytrix: Search Docs for Selection` seeds the query
+  docs, and keywords. `Nytrix: Search Docs for Selection` seeds the query
   from the selected text or symbol under the cursor.
-- The status bar entries expose command links for Actions, Docs, Toolchain,
-  Settings, and LSP restart, so the common workflow stays one click away after
-  the extension activates.
-- The extension contributes a Get Started walkthrough for toolchain discovery,
-  quick actions, docs/API search, and debug setup.
+- The status bar entries link to Actions, Docs, Toolchain, Settings, and LSP
+  restart.
+- The extension contributes a walkthrough for toolchain discovery, actions,
+  docs/API search, and debug setup.
 - `nytrix.run.mode` lets you choose between one-off terminal runs, output-panel
   runs, or routing file/selection execution into the persistent REPL.
 - `nytrix.output.reveal` controls whether command output auto-opens on errors,
@@ -90,9 +80,9 @@ The extension searches in this order:
 6. `~/nytrix` and `~/.nytrix`.
 7. `PATH`.
 
-That means opening the Nytrix repository root works with the repo-local binaries
-after a normal build, and a fresh machine can recover itself through `Nytrix:
-Install Toolchain` after you approve the install.
+Opening the Nytrix repository root uses repo-local binaries after a normal
+build. `Nytrix: Install Toolchain` can set up the managed toolchain after
+approval.
 
 ## Commands
 
@@ -215,7 +205,7 @@ build machine path differs from your workspace, use `sourceFileMap`, for example
   boots it or sends code into it.
 - `nytrix.check.onSave`: fallback compiler diagnostics on save when `ny-lsp`
   is unavailable.
-- `nytrix.codeLens.enabled`: show compact Run/Check/Expand/Debug action lenses.
+- `nytrix.codeLens.enabled`: show Run/Check/Expand/Debug action lenses.
 - `nytrix.errorLens.enabled`: show inline Nytrix diagnostic summaries after the
   affected line.
 - `nytrix.errorLens.includeHints`: include analyzer hints and notes in inline

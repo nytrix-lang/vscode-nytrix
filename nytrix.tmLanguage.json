@@ -174,7 +174,7 @@
               "name": "punctuation.definition.string.begin.nytrix"
             }
           },
-          "end": "(?<!\\\\)\\1",
+          "end": "(?<!\\\\)(?:\\\\\\\\)*\\K\\1",
           "endCaptures": {
             "0": {
               "name": "punctuation.definition.string.end.nytrix"
@@ -197,7 +197,7 @@
               "name": "punctuation.definition.string.begin.nytrix"
             }
           },
-          "end": "(?<!\\\\)\\3",
+          "end": "(?<!\\\\)(?:\\\\\\\\)*\\K\\3",
           "endCaptures": {
             "0": {
               "name": "punctuation.definition.string.end.nytrix"
@@ -217,7 +217,7 @@
               "name": "punctuation.definition.string.begin.nytrix"
             }
           },
-          "end": "(?<!\\\\)\\1",
+          "end": "(?<!\\\\)(?:\\\\\\\\)*\\K\\1",
           "endCaptures": {
             "0": {
               "name": "punctuation.definition.string.end.nytrix"
@@ -237,7 +237,7 @@
               "name": "punctuation.definition.string.begin.nytrix"
             }
           },
-          "end": "(?<!\\\\)\\1",
+          "end": "(?<!\\\\)(?:\\\\\\\\)*\\K\\1",
           "endCaptures": {
             "0": {
               "name": "punctuation.definition.string.end.nytrix"
@@ -257,7 +257,7 @@
               "name": "punctuation.definition.string.begin.nytrix"
             }
           },
-          "end": "(?<!\\\\)\\1",
+          "end": "(?<!\\\\)(?:\\\\\\\\)*\\K\\1",
           "endCaptures": {
             "0": {
               "name": "punctuation.definition.string.end.nytrix"
@@ -277,7 +277,7 @@
               "name": "punctuation.definition.string.begin.nytrix"
             }
           },
-          "end": "(?<!\\\\)\\1",
+          "end": "(?<!\\\\)(?:\\\\\\\\)*\\K\\1",
           "endCaptures": {
             "0": {
               "name": "punctuation.definition.string.end.nytrix"
@@ -297,7 +297,7 @@
               "name": "punctuation.definition.string.begin.nytrix"
             }
           },
-          "end": "(?<!\\\\)\\1",
+          "end": "(?<!\\\\)(?:\\\\\\\\)*\\K\\1",
           "endCaptures": {
             "0": {
               "name": "punctuation.definition.string.end.nytrix"
@@ -317,7 +317,7 @@
               "name": "punctuation.definition.string.begin.nytrix"
             }
           },
-          "end": "(?<!\\\\)\\1",
+          "end": "(?<!\\\\)(?:\\\\\\\\)*\\K\\1",
           "endCaptures": {
             "0": {
               "name": "punctuation.definition.string.end.nytrix"
@@ -639,7 +639,7 @@
               "name": "punctuation.definition.string.begin.nytrix"
             }
           },
-          "end": "(?<!\\\\)\"",
+          "end": "(?<!\\\\)(?:\\\\\\\\)*\\K\"",
           "endCaptures": {
             "0": {
               "name": "punctuation.definition.string.end.nytrix"
@@ -679,7 +679,7 @@
               "name": "punctuation.definition.string.begin.nytrix"
             }
           },
-          "end": "(?<!\\\\)'",
+          "end": "(?<!\\\\)(?:\\\\\\\\)*\\K'",
           "endCaptures": {
             "0": {
               "name": "punctuation.definition.string.end.nytrix"
@@ -709,7 +709,7 @@
               "name": "punctuation.definition.string.begin.nytrix"
             }
           },
-          "end": "(?<!\\\\)\"",
+          "end": "(?<!\\\\)(?:\\\\\\\\)*\\K\"",
           "endCaptures": {
             "0": {
               "name": "punctuation.definition.string.end.nytrix"
@@ -729,7 +729,7 @@
               "name": "punctuation.definition.string.begin.nytrix"
             }
           },
-          "end": "(?<!\\\\)'",
+          "end": "(?<!\\\\)(?:\\\\\\\\)*\\K'",
           "endCaptures": {
             "0": {
               "name": "punctuation.definition.string.end.nytrix"
