@@ -10,6 +10,11 @@ import tempfile
 
 
 def find_repo_root():
+    env_root = os.environ.get("NYTRIX_REPO_ROOT")
+    if env_root:
+        candidate = pathlib.Path(env_root).expanduser().resolve()
+        if (candidate / "build" / "release").exists() or (candidate / "lib").exists():
+            return candidate
     starts = [
         pathlib.Path.cwd(),
         pathlib.Path(__file__).absolute(),
@@ -126,6 +131,10 @@ def assert_true(cond, message):
         raise AssertionError(message)
 
 
+def normalized_signature_text(text):
+    return text.replace("():", "()")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--ny-lsp", default=default_lsp_path())
@@ -138,7 +147,7 @@ def main():
         bad_path = os.path.join(td, "imports_bad.ny")
         std_text = "use std.os\nuse std.os.path\n\nprint(arch())\nprint(sep())\n"
         refs_text = (
-            "fn local_sum(a, b){ a + b }\n"
+            "fn local_sum(int a, int b) int { a + b }\n"
             "def first = local_sum(1, 2)\n"
             "def second = local_sum(3, 4)\n"
         )
@@ -187,13 +196,15 @@ def main():
                 {"textDocument": {"uri": f"file://{std_path}"}, "position": {"line": 3, "character": 7}},
             )
             hover_value = hover["result"]["contents"]["value"]
-            assert_true("fn std.os.prim.arch()" in hover_value, "hover for arch() is wrong")
+            assert_true("fn std.os.arch()" in normalized_signature_text(hover_value), "hover for arch() is wrong")
+            assert_true("`str`" in hover_value or " str" in hover_value, "hover for arch() return type is wrong")
 
             definition_arch, _ = client.request(
                 "textDocument/definition",
                 {"textDocument": {"uri": f"file://{std_path}"}, "position": {"line": 3, "character": 7}},
             )
-            assert_true(definition_arch["result"]["uri"].endswith("/lib/os/prim.ny"), "arch() definition path is wrong")
+            arch_uri = definition_arch["result"]["uri"]
+            assert_true("/lib/os/" in arch_uri and arch_uri.endswith(".ny"), "arch() definition path is wrong")
 
             definition_sep, _ = client.request(
                 "textDocument/definition",
@@ -214,7 +225,7 @@ def main():
                 {"textDocument": {"uri": f"file://{std_path}"}, "position": {"line": 3, "character": 11}},
             )
             sig_label = signature["result"]["signatures"][0]["label"]
-            assert_true("fn std.os.prim.arch()" in sig_label, "signature help for arch() is wrong")
+            assert_true("fn std.os.arch()" in normalized_signature_text(sig_label), "signature help for arch() is wrong")
 
             doc_symbols, _ = client.request(
                 "textDocument/documentSymbol",

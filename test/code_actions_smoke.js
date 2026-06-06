@@ -1,9 +1,9 @@
-#!/usr/bin/env node
 "use strict";
 
 const assert = require("assert");
 const path = require("path");
 const { findNytrixRoot } = require("./extension_root");
+const { Position, Range, fileUri } = require("./harness");
 const { loadExtensionWithVscode } = require("./vscode_stub");
 
 const repoRoot = findNytrixRoot();
@@ -16,20 +16,6 @@ class Kind {
 
   append(segment) {
     return new Kind(`${this.value}.${segment}`);
-  }
-}
-
-class Position {
-  constructor(line, character) {
-    this.line = line;
-    this.character = character;
-  }
-}
-
-class Range {
-  constructor(startLine, startCharacter, endLine, endCharacter) {
-    this.start = new Position(startLine, startCharacter);
-    this.end = new Position(endLine, endCharacter);
   }
 }
 
@@ -74,14 +60,7 @@ const fakeVscode = {
   Position,
   Range,
   Uri: {
-    file(filePath) {
-      return {
-        fsPath: filePath,
-        toString() {
-          return filePath;
-        }
-      };
-    }
+    file: fileUri
   },
   DiagnosticSeverity: {
     Error: 0,
@@ -120,7 +99,7 @@ async function main() {
     "use std.os *",
     "use std.core(print)",
     "",
-    "fn helper(value){",
+    "fn helper(int value) int {",
     "   return value + 1",
     "}",
     "",
@@ -201,10 +180,6 @@ async function main() {
   assert(lensTitles.includes("Problems: 1 error, 1 warning"), "missing problems summary lens");
   assert(lensTitles.includes("Fixable: 1 issue"), "missing fixable summary lens");
 
-  console.log("code action smoke: ok");
 }
 
-main().catch((err) => {
-  console.error(err && err.stack ? err.stack : String(err));
-  process.exit(1);
-});
+module.exports = main;

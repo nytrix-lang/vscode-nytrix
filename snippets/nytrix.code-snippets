@@ -2,7 +2,7 @@
   "Nytrix Main": {
     "prefix": "main",
     "body": [
-      "fn main(): int {",
+      "fn main() int {",
       "   ${1}",
       "   return 0",
       "}"
@@ -12,7 +12,7 @@
   "Nytrix Function": {
     "prefix": "fn",
     "body": [
-      "fn ${1:name}(${2})${3:: ${4}} {",
+      "fn ${1:name}(${2})${3: ${4:int}} {",
       "   ${5}",
       "}"
     ],
@@ -21,7 +21,7 @@
   "Nytrix Documented Function": {
     "prefix": "fndoc",
     "body": [
-      "fn ${1:name}(${2})${3:: ${4}} {",
+      "fn ${1:name}(${2})${3: ${4:int}} {",
       "   \"${5:Describe what this function returns.}\"",
       "   ${6}",
       "}"
@@ -69,7 +69,7 @@
     "prefix": "struct",
     "body": [
       "struct ${1:Name} {",
-      "   ${2:Type}: ${3:field}",
+      "   ${2:Type} ${3:field}",
       "}"
     ],
     "description": "Struct declaration."
@@ -78,7 +78,7 @@
     "prefix": "layout",
     "body": [
       "layout ${1:Name} {",
-      "   ${2:Type}: ${3:field}",
+      "   ${2:Type} ${3:field}",
       "}"
     ],
     "description": "Layout declaration."

@@ -14,11 +14,11 @@ SOURCES := \
 	src/extension.js \
 	src/nytrixDebugAdapter.js \
 	snippets/nytrix.code-snippets \
-	package.json package-lock.json language-configuration.json nshape-language-configuration.json shader-language-configuration.json \
+	.vscodeignore package.json package-lock.json language-configuration.json nshape-language-configuration.json shader-language-configuration.json \
 	nytrix.tmLanguage.json nshape.tmLanguage.json shader.tmLanguage.json markdown-nytrix.tmLanguage.json \
 	README.md DETAILS.md LICENSE.md CHANGELOG.md logo.png
 
-PACKAGE_FILES := src snippets package.json package-lock.json language-configuration.json nshape-language-configuration.json shader-language-configuration.json \
+PACKAGE_FILES := src snippets .vscodeignore package.json package-lock.json language-configuration.json nshape-language-configuration.json shader-language-configuration.json \
 	nytrix.tmLanguage.json nshape.tmLanguage.json shader.tmLanguage.json markdown-nytrix.tmLanguage.json \
 	README.md DETAILS.md LICENSE.md CHANGELOG.md logo.png
 

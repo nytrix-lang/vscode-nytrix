@@ -827,13 +827,60 @@
       "patterns": [
         {
           "name": "meta.function.definition.nytrix",
-          "match": "\\bfn\\s+([A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)?)\\b",
-          "captures": {
-            "0": {
-              "name": "meta.function.definition.nytrix"
-            },
+          "begin": "\\b(fn)\\s+([A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)?)\\s*(\\()",
+          "beginCaptures": {
             "1": {
+              "name": "storage.type.function.nytrix"
+            },
+            "2": {
               "name": "entity.name.function.nytrix"
+            },
+            "3": {
+              "name": "punctuation.brackets.round.nytrix"
+            }
+          },
+          "end": "(?=\\{|$)",
+          "patterns": [
+            {
+              "name": "meta.parameter.typed.nytrix",
+              "match": "\\b([A-Za-z_?*][A-Za-z0-9_?*.]*(?:\\s*<[^(){};]*>)?)\\s+([A-Za-z_][A-Za-z0-9_]*)\\b(?=\\s*(?:=|,|\\)))",
+              "captures": {
+                "1": {
+                  "name": "support.type.parameter.nytrix"
+                },
+                "2": {
+                  "name": "variable.parameter.nytrix"
+                }
+              }
+            },
+            {
+              "match": "(\\))\\s*((?!as\\b)[A-Za-z_?*][A-Za-z0-9_?*.]*(?:\\s*<[^(){};]*>)?)",
+              "captures": {
+                "1": {
+                  "name": "punctuation.brackets.round.nytrix"
+                },
+                "2": {
+                  "name": "support.type.return.nytrix"
+                }
+              }
+            },
+            {
+              "include": "#type"
+            },
+            {
+              "include": "#punctuation"
+            }
+          ]
+        },
+        {
+          "name": "meta.extern.block.nytrix",
+          "match": "\\b(extern)(?:\\s+((?:\"[^\"]*\"|'[^']*'|[A-Za-z_][A-Za-z0-9_]*)))?\\s*(?=\\{)",
+          "captures": {
+            "1": {
+              "name": "storage.type.extern.nytrix"
+            },
+            "2": {
+              "name": "string.other.extern-abi.nytrix"
             }
           }
         },
@@ -904,11 +951,19 @@
       "patterns": [
         {
           "name": "support.type.primitive.nytrix",
-          "match": "\\b(?:bool|str|string|ptr|handle|int|float|i8|i16|i32|i64|i128|u8|u16|u32|u64|u128|f32|f64|f128|bytes|list|dict|set|tuple|range|vec2|vec3|vec4|Vector2|Vector3|Vector4)\\b"
+          "match": "\\b(?:any|bool|str|string|ptr|handle|int|float|void|char|isize|usize|i8|i16|i32|i64|i128|u8|u16|u32|u64|u128|f32|f64|f128|bytes|list|dict|set|tuple|range|Result|Option|Error|vec2|vec3|vec4|Vector2|Vector3|Vector4)\\b"
         },
         {
           "name": "support.type.pointer.nytrix",
           "match": "\\?(?:\\*?)[A-Za-z_][A-Za-z0-9_\\.]*|\\*[A-Za-z_][A-Za-z0-9_\\.]*"
+        },
+        {
+          "name": "support.type.generic.nytrix",
+          "match": "\\b[A-Z][A-Za-z0-9_]*(?=\\s*<)"
+        },
+        {
+          "name": "support.type.user.nytrix",
+          "match": "\\b[A-Z][A-Za-z0-9_]*\\b"
         }
       ]
     },

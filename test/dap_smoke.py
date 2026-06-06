@@ -9,6 +9,11 @@ import tempfile
 import time
 
 def find_repo_root():
+    env_root = os.environ.get("NYTRIX_REPO_ROOT")
+    if env_root:
+        candidate = pathlib.Path(env_root).expanduser().resolve()
+        if (candidate / "build" / "release").exists() or (candidate / "lib").exists():
+            return candidate
     starts = [
         pathlib.Path.cwd(),
         pathlib.Path(__file__).absolute(),
@@ -128,6 +133,10 @@ def events_named(messages, name):
     return [msg for msg in messages if msg.get("type") == "event" and msg.get("event") == name]
 
 
+def output_text_for(messages):
+    return "\n".join(msg.get("body", {}).get("output", "") for msg in events_named(messages, "output"))
+
+
 def run_auto_entry_smoke(args):
     with tempfile.TemporaryDirectory(prefix="nytrix-debug-auto-entry-") as td:
         program = os.path.join(td, "script_debug.ny")
@@ -203,7 +212,7 @@ def run_auto_entry_smoke(args):
             assert_true(init and init.get("success") is True, f"auto-entry initialize failed: {stderr_text}")
 
             launch = response_for(messages, launch_seq, "launch")
-            assert_true(launch and launch.get("success") is True, f"auto-entry launch failed: {stderr_text}")
+            assert_true(launch and launch.get("success") is True, f"auto-entry launch failed: {launch!r} {output_text_for(messages)} {stderr_text}")
 
             cfg = response_for(messages, cfg_seq, "configurationDone")
             assert_true(cfg and cfg.get("success") is True, "auto-entry configurationDone failed")
@@ -226,7 +235,7 @@ def run_auto_entry_smoke(args):
             disconnect = response_for(messages, disconnect_seq, "disconnect")
             assert_true(disconnect and disconnect.get("success") is True, "auto-entry disconnect failed")
 
-            output_text = "\n".join(msg.get("body", {}).get("output", "") for msg in events_named(messages, "output"))
+            output_text = output_text_for(messages)
             assert_true("[auto-break]" in output_text, "auto-entry launch did not report the temporary entry breakpoint")
             assert_true("runtime frame hidden" in output_text, "auto-entry backtrace did not report hidden runtime frames")
             assert_true(events_named(messages, "terminated"), "auto-entry launch never terminated")
@@ -252,17 +261,17 @@ def main():
         out_dir = os.path.join(td, "out")
         with open(program, "w", encoding="utf-8") as f:
             f.write(
-                "fn add_one(value): int {\n"
+                "fn add_one(int value) int {\n"
                 "   return value + 1\n"
                 "}\n"
                 "\n"
-                "fn twice(base): int {\n"
+                "fn twice(int base) int {\n"
                 "   def y = add_one(base)\n"
                 "   print(y)\n"
                 "   return y\n"
                 "}\n"
                 "\n"
-                "fn main(): int {\n"
+                "fn main() int {\n"
                 "   def x = 41\n"
                 "   def y = twice(x)\n"
                 "   print(y)\n"
@@ -378,7 +387,7 @@ def main():
             assert_true(caps.get("supportsModulesRequest") is True, "modules capability missing")
 
             launch = response_for(messages, launch_seq, "launch")
-            assert_true(launch and launch.get("success") is True, f"launch failed: {stderr_text}")
+            assert_true(launch and launch.get("success") is True, f"launch failed: {launch!r} {output_text_for(messages)} {stderr_text}")
 
             bp_resp = response_for(messages, bp_seq, "setBreakpoints")
             assert_true(bp_resp and bp_resp.get("success") is True, "setBreakpoints failed")
@@ -393,7 +402,7 @@ def main():
 
             stack = response_for(messages, stack_seq, "stackTrace")
             frames = stack.get("body", {}).get("stackFrames", []) if stack else []
-            assert_true(frames, "stack trace is empty")
+            assert_true(frames, f"stack trace is empty: {stack!r} {output_text_for(messages)}")
             top = frames[0]
             frame_names = [frame.get("name", "") for frame in frames]
             assert_true(any("twice" in name for name in frame_names), f"stack trace missing twice(): {frame_names!r}")

@@ -1,68 +1,8 @@
-#!/usr/bin/env node
 "use strict";
 
 const assert = require("assert");
+const { Position, Range, document, fileUri } = require("./harness");
 const { loadExtensionWithVscode } = require("./vscode_stub");
-
-class Position {
-  constructor(line, character) {
-    this.line = line;
-    this.character = character;
-  }
-}
-
-class Range {
-  constructor(startLine, startCharacter, endLine, endCharacter) {
-    this.start = new Position(startLine, startCharacter);
-    this.end = new Position(endLine, endCharacter);
-  }
-}
-
-function fileUri(filePath) {
-  return {
-    scheme: "file",
-    fsPath: filePath,
-    toString() {
-      return filePath;
-    }
-  };
-}
-
-function document(filePath, text) {
-  const lines = text.split(/\r?\n/);
-  return {
-    languageId: "nytrix",
-    uri: fileUri(filePath),
-    lineCount: lines.length,
-    getText(range) {
-      if (!range) {
-        return text;
-      }
-      if (range.start.line !== range.end.line) {
-        return "";
-      }
-      return lines[range.start.line].slice(range.start.character, range.end.character);
-    },
-    lineAt(index) {
-      return { text: lines[index] };
-    },
-    getWordRangeAtPosition(position, regex) {
-      const line = lines[position.line] || "";
-      const word = regex
-        ? new RegExp(regex.source, regex.flags.includes("g") ? regex.flags : `${regex.flags}g`)
-        : /[A-Za-z_][A-Za-z0-9_.]*/g;
-      let match;
-      while ((match = word.exec(line))) {
-        const start = match.index;
-        const end = start + match[0].length;
-        if (position.character >= start && position.character <= end) {
-          return new Range(position.line, start, position.line, end);
-        }
-      }
-      return null;
-    }
-  };
-}
 
 let shownDocument = null;
 
@@ -153,6 +93,12 @@ const fakeVscode = {
 
 const extension = loadExtensionWithVscode(fakeVscode);
 
+function compilerSymbol(document, symbol) {
+  return extension.__test.compilerArtifactToSymbols(document, {
+    symbols: [{ kind: "fn", line: 1, col: 1, ...symbol }]
+  })[0];
+}
+
 async function main() {
   const base = extension.__test.resolveNytrixDebugConfig(
     { uri: fileUri("/workspace") },
@@ -197,18 +143,18 @@ async function main() {
   );
 
   const current = document("/workspace/current.ny", [
-    "fn local_sum(a, b){",
+    "fn local_sum(int a, int b) int {",
     "   return a + b",
     "}",
-    "fn local_other(){",
+    "fn local_other() int {",
     "   return local_sum(1, 2)",
     "}"
   ].join("\n"));
   const std = document("/workspace/lib/math/mod.ny", [
-    "fn local_sum_extra(a){",
+    "fn local_sum_extra(int a) int {",
     "   return a",
     "}",
-    "fn clamp(x, lo, hi){",
+    "fn clamp(int x, int lo, int hi) int {",
     "   return x",
     "}"
   ].join("\n"));
@@ -221,19 +167,23 @@ async function main() {
   const index = new extension.__test.NytrixSymbolIndex();
   index.updateDocument(current);
   index.updateDocument(std);
-  const compilerSymbols = extension.__test.compilerArtifactToSymbols(current, {
-    symbols: [{
-      kind: "fn",
-      name: "local_sum",
-      line: 1,
-      col: 1,
-      signature: "fn local_sum(any: a, any: b)",
-      doc: "Adds two values."
-    }]
+  const localSymbols = index.documentSymbols(current);
+  assert.strictEqual(localSymbols[0].signature, "fn local_sum(int a, int b) int", "local signatures should use current syntax");
+  const artifactSymbol = compilerSymbol(current, {
+    name: "local_sum",
+    signature: "fn local_sum(any a, Result<dict, str> b) int",
+    doc: "Adds two values."
   });
-  assert.strictEqual(compilerSymbols.length, 1, "compiler symbol artifact should map to index symbols");
-  assert.strictEqual(compilerSymbols[0].range.start.line, 0, "compiler symbol line should become zero-based");
-  assert.strictEqual(compilerSymbols[0].range.start.character, 3, "compiler symbol range should select the function name");
+  assert(artifactSymbol, "compiler symbol artifact should map to index symbols");
+  assert.strictEqual(artifactSymbol.range.start.line, 0, "compiler symbol line should become zero-based");
+  assert.strictEqual(artifactSymbol.range.start.character, 3, "compiler symbol range should select the function name");
+  assert.strictEqual(artifactSymbol.signature, "fn local_sum(any a, Result<dict, str> b) int", "compiler signatures should stay compact");
+  const structuredSymbol = compilerSymbol(current, {
+    name: "local_structured",
+    params: [{ name: "path", type: "str" }],
+    return: "Result<dict, str>"
+  });
+  assert.strictEqual(structuredSymbol.signature, "fn local_structured(str path) Result<dict, str>", "structured compiler symbols should format signatures");
   index.updateCompilerFacts({
     type_groups: {
       integer: ["int", "u64"],
@@ -253,10 +203,6 @@ async function main() {
   assert.strictEqual(shownDocument.options.selection.start.line, 0);
   assert.strictEqual(extension.__test.runtimeSuitePath(), "etc/tests/rt");
 
-  console.log("debug symbol smoke: ok");
 }
 
-main().catch((err) => {
-  console.error(err && err.stack ? err.stack : String(err));
-  process.exit(1);
-});
+module.exports = main;

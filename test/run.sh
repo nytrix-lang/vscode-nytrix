@@ -20,11 +20,7 @@ REPO_ROOT="${NYTRIX_REPO_ROOT:-$(find_repo_root)}"
 export NYTRIX_VSCODE_EXTENSION_ROOT="$EXT_ROOT"
 
 run_js_smoke() {
-  node "$TEST_DIR/metadata_smoke.js"
-  node "$TEST_DIR/package_smoke.js"
-  node "$TEST_DIR/bootstrap_smoke.js"
-  node "$TEST_DIR/code_actions_smoke.js"
-  node "$TEST_DIR/debug_symbol_smoke.js"
+  node "$TEST_DIR/js_smoke.js"
 }
 
 usage() {
@@ -33,9 +29,7 @@ Usage: $0 <target> [args...]
 
 Targets:
   check                  npm syntax check
-  js | unit              metadata + package + bootstrap + action + symbol smokes
-  metadata              package/manifest drift smoke
-  package               package content and ignore-rule smoke
+  js | unit              compact JS smoke suite
   lsp                   raw LSP JSON-RPC smoke
   dap                   stdio DAP smoke
   smoke                 check + js + lsp + dap
@@ -60,21 +54,6 @@ case "$target" in
     ;;
   js | unit)
     run_js_smoke
-    ;;
-  metadata)
-    node "$TEST_DIR/metadata_smoke.js"
-    ;;
-  package)
-    node "$TEST_DIR/package_smoke.js"
-    ;;
-  bootstrap)
-    node "$TEST_DIR/bootstrap_smoke.js"
-    ;;
-  code-actions)
-    node "$TEST_DIR/code_actions_smoke.js"
-    ;;
-  debug-symbols)
-    node "$TEST_DIR/debug_symbol_smoke.js"
     ;;
   lsp)
     "$TEST_DIR/lsp_smoke.py" "$@"
