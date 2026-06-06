@@ -11,15 +11,15 @@ cd test
 ./run.sh headless-clickthrough
 ```
 
-Use `npm run validate` for JS and manifest checks. Use `./run.sh smoke` for
-`ny-lsp` and debug-adapter protocol checks. Use a UI target when changing
+Use `npm run validate` for the compact JS smoke runner and manifest checks. Use
+`./run.sh smoke` for `ny-lsp` and debug-adapter protocol checks. Use a UI target when changing
 editor wiring, menus, keybindings, highlighting, or sandbox launch.
 
 ## Test Map
 
 | Target | Covers | Runtime |
 | --- | --- | --- |
-| `npm run validate` | JS syntax, manifest metadata, packaging rules, bootstrap/code-action/symbol smokes | short |
+| `npm run validate` | JS syntax, metadata/package rules, bootstrap/code-action/symbol smokes | short |
 | `./run.sh smoke` | JS smokes plus raw LSP and DAP protocol checks | medium |
 | `./run.sh clickthrough` | Visible VS Code session with command palette, diagnostics, and editor flow | long |
 | `./run.sh headless-clickthrough` | Same UI path through `Xvfb` | long |
@@ -28,8 +28,8 @@ editor wiring, menus, keybindings, highlighting, or sandbox launch.
 
 ## Files
 
-- `metadata_smoke.js`: package/manifest drift, commands, settings, walkthroughs.
-- `package_smoke.js`: package contents and generated-output guards.
+- `js_smoke.js`: shared runner for the compact JS suite.
+- `metadata_smoke.js`: package/manifest drift, commands, settings, walkthroughs, package contents.
 - `bootstrap_smoke.js`: managed Nytrix checkout plan.
 - `code_actions_smoke.js`: quick fixes, formatter/analyzer actions.
 - `debug_symbol_smoke.js`: compiler-backed symbol index and debug helpers.
@@ -42,8 +42,6 @@ editor wiring, menus, keybindings, highlighting, or sandbox launch.
 ## Commands
 
 ```sh
-./run.sh metadata
-./run.sh package
 ./run.sh js
 ./run.sh lsp
 ./run.sh dap

@@ -1864,7 +1864,7 @@ function compilerArtifactToSymbols(document, artifact) {
       range,
       selectionRange: range,
       line: documentLineText(document, range.start.line).trim(),
-      signature: String(raw.signature || raw.name),
+      signature: compilerSymbolSignature(raw),
       doc: String(raw.doc || ""),
       params: Array.isArray(raw.params) ? raw.params : [],
       output: raw.return ? String(raw.return) : ""
@@ -2744,19 +2744,93 @@ function kindLabel(kind) {
   }
 }
 
+function splitSignatureParams(paramsText) {
+  const params = [];
+  const text = String(paramsText || "");
+  let start = 0;
+  let depth = 0;
+  let quote = "";
+  const push = (end) => {
+    const value = text.slice(start, end).trim();
+    if (value) {
+      params.push(value);
+    }
+    start = end + 1;
+  };
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (quote) {
+      if (ch === "\\") i += 1;
+      else if (ch === quote) quote = "";
+      continue;
+    }
+    if (ch === "\"" || ch === "'") {
+      quote = ch;
+    } else if ("<([{".includes(ch)) {
+      depth += 1;
+    } else if (">)]}".includes(ch)) {
+      depth = Math.max(0, depth - 1);
+    } else if (ch === "," && depth === 0) {
+      push(i);
+    }
+  }
+  push(text.length);
+  return params;
+}
+
 function parseSignatureParts(signature) {
-  const text = String(signature || "").trim();
-  const match = text.match(/^fn\s+([^\s(]+)\s*\((.*)\)\s*(?::\s*(.+))?$/);
+  const text = String(signature || "").trim().replace(/\s*\{.*$/, "").trim();
+  const match = text.match(/^fn\s+([^\s(]+)\s*\((.*)\)\s*(?::\s*)?([^{}]*)?$/);
   if (!match) {
     return null;
   }
+  const name = match[1].trim();
   const paramsText = match[2].trim();
-  return {
-    name: match[1].trim(),
-    paramsText,
-    params: paramsText ? paramsText.split(",").map((p) => p.trim()).filter(Boolean) : [],
-    output: (match[3] || "").trim()
-  };
+  const output = String(match[3] || "")
+    .replace(/\s+as\b.*$/, "")
+    .replace(/^as\b.*$/, "")
+    .trim();
+  return { name, paramsText, params: splitSignatureParams(paramsText), output };
+}
+
+function normalizeSignatureParam(param) {
+  return String(param || "").trim()
+    .replace(/^([A-Za-z_?*][A-Za-z0-9_?*.]*(?:\s*<[^(){}]*>)?)\s*:\s*([A-Za-z_][A-Za-z0-9_]*)$/, "$1 $2");
+}
+
+function normalizeNytrixSignature(signature) {
+  const parsed = parseSignatureParts(signature);
+  if (!parsed) {
+    return String(signature || "");
+  }
+  const params = parsed.params.map(normalizeSignatureParam).join(", ");
+  return `fn ${parsed.name}(${params})${parsed.output ? ` ${parsed.output}` : ""}`;
+}
+
+function compilerParamSignature(param) {
+  if (typeof param === "string") {
+    return param.trim();
+  }
+  if (!param || typeof param !== "object") {
+    return "";
+  }
+  return [param.type, param.name].map((part) => String(part || "").trim()).filter(Boolean).join(" ");
+}
+
+function compilerSymbolSignature(raw) {
+  const normalized = normalizeNytrixSignature(raw && raw.signature);
+  if (normalized) {
+    return normalized;
+  }
+  const name = String(raw && raw.name ? raw.name : "symbol");
+  if (compilerSymbolKind(raw && raw.kind) !== "fn") {
+    return name;
+  }
+  const params = Array.isArray(raw.params)
+    ? raw.params.map(compilerParamSignature).filter(Boolean).join(", ")
+    : "";
+  const output = String((raw && (raw.return || raw.output)) || "").trim();
+  return `fn ${name}(${params})${output ? ` ${output}` : ""}`;
 }
 
 function symbolPreviewMarkdown(symbol) {
@@ -3000,7 +3074,7 @@ class NytrixSymbolIndex {
       const line = lines[i];
       const patterns = [
         ["module", /^\s*module\s+([A-Za-z_][A-Za-z0-9_.]*)/],
-        ["fn", /^\s*(?:@[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*)*fn\s+([A-Za-z_][A-Za-z0-9_.]*)\s*\(([^)]*)\)\s*(?::\s*([A-Za-z_?*][A-Za-z0-9_?*.]*))?/],
+        ["fn", /^\s*(?:@[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*)*(?:extern\s+(?:"[^"]*"|'[^']*'|[A-Za-z_][A-Za-z0-9_]*)\s*)?fn\s+([A-Za-z_][A-Za-z0-9_.]*)\s*\(([^)]*)\)\s*(?::\s*)?((?!as\b)[A-Za-z_?*][A-Za-z0-9_?*.]*(?:\s*<[^(){}]*>)?)?/],
         ["layout", /^\s*layout\s+([A-Za-z_][A-Za-z0-9_]*)/],
         ["struct", /^\s*struct\s+([A-Za-z_][A-Za-z0-9_]*)/],
         ["enum", /^\s*enum\s+([A-Za-z_][A-Za-z0-9_]*)/],
@@ -3019,7 +3093,7 @@ class NytrixSymbolIndex {
         const range = new vscode.Range(i, start, i, Math.max(start + match[1].length, line.length));
         const doc = this.nearbyDoc(lines, i);
         const signature = kind === "fn"
-          ? `fn ${name}(${match[2] || ""})${match[3] ? `: ${match[3]}` : ""}`
+          ? normalizeNytrixSignature(`fn ${name}(${match[2] || ""})${match[3] ? ` ${match[3]}` : ""}`)
           : line.trim();
         symbols.push({ name, kind, uri: document.uri, range, selectionRange: range, line: line.trim(), signature, doc });
         break;
@@ -3387,10 +3461,8 @@ class NytrixSignatureProvider {
     }
     const help = new vscode.SignatureHelp();
     const sig = new vscode.SignatureInformation(fn.signature, fn.doc || "");
-    const params = (fn.signature.match(/\((.*)\)/) || ["", ""])[1]
-      .split(",")
-      .map((p) => p.trim())
-      .filter(Boolean);
+    const parsed = parseSignatureParts(fn.signature);
+    const params = parsed ? parsed.params : [];
     sig.parameters = params.map((p) => new vscode.ParameterInformation(p));
     help.signatures = [sig];
     help.activeSignature = 0;

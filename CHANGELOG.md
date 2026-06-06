@@ -2,6 +2,15 @@
 
 Compact release notes for the Nytrix VS Code extension.
 
+## 0.1.4 - 2026-06-06
+
+- Updated snippets, highlighting, and fallback symbol parsing for
+  `fn name(type arg) RetType`.
+- Highlighted `extern { ... }` and `extern "abi" { ... }` consistently.
+- Normalized fallback hover/signature output to the current compact syntax.
+- Folded JS smokes into one shared runner and removed duplicate activation
+  entries for contributed commands.
+
 ## 0.1.3 - 2026-06-03
 
 - Fixed string highlighting after escaped trailing backslashes.

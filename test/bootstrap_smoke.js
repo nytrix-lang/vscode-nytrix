@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 "use strict";
 
 const assert = require("assert");
@@ -50,12 +49,6 @@ function main() {
   );
   assert.strictEqual(plan.buildCommand, plan.paths.makeScript, "expected non-Windows bootstrap to use repo make script");
 
-  console.log("bootstrap smoke: ok");
 }
 
-try {
-  main();
-} catch (err) {
-  console.error(err && err.stack ? err.stack : String(err));
-  process.exit(1);
-}
+module.exports = main;
