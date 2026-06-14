@@ -135,7 +135,7 @@ No host grab: $NO_HOST_GRAB
 
 Use:
   DISPLAY=$display_value xwininfo -root -tree
-  DISPLAY=$display_value $TEST_DIR/keysend.sh activate 0x<window-id>
+  DISPLAY=$display_value $TEST_DIR/keysend.py activate 0x<window-id>
   kill $code_value $xephyr_value
 EOF
 }
@@ -436,30 +436,30 @@ JSON
 
 if [[ "$HEADLESS" == "0" && -n "$HOST_DISPLAY" && ( "$FULLSCREEN" != "0" || "$RESTORE_FOCUS" != "0" ) ]]; then
   (
-    HOST_XEPHYR_WIN="$(DISPLAY="$HOST_DISPLAY" "$TEST_DIR/keysend.sh" wait-window 20 'Nytrix Xephyr' 2>/dev/null || true)"
+    HOST_XEPHYR_WIN="$(DISPLAY="$HOST_DISPLAY" "$TEST_DIR/keysend.py" wait-window 20 'Nytrix Xephyr' 2>/dev/null || true)"
     if [[ -n "$HOST_XEPHYR_WIN" && "$FULLSCREEN" != "0" ]]; then
       if [[ "$HOST_FULLSCREEN_MODE" == "maximize" ]]; then
-        DISPLAY="$HOST_DISPLAY" "$TEST_DIR/keysend.sh" maximize-window "$HOST_XEPHYR_WIN" || true
+        DISPLAY="$HOST_DISPLAY" "$TEST_DIR/keysend.py" maximize-window "$HOST_XEPHYR_WIN" || true
       else
-        DISPLAY="$HOST_DISPLAY" "$TEST_DIR/keysend.sh" fullscreen-window "$HOST_XEPHYR_WIN" || true
+        DISPLAY="$HOST_DISPLAY" "$TEST_DIR/keysend.py" fullscreen-window "$HOST_XEPHYR_WIN" || true
       fi
     fi
     if [[ "$RESTORE_FOCUS" != "0" && -n "$HOST_ACTIVE_WINDOW" && "$HOST_ACTIVE_WINDOW" != "0x0" ]]; then
       sleep 1
-      DISPLAY="$HOST_DISPLAY" "$TEST_DIR/keysend.sh" activate "$HOST_ACTIVE_WINDOW" || true
+      DISPLAY="$HOST_DISPLAY" "$TEST_DIR/keysend.py" activate "$HOST_ACTIVE_WINDOW" || true
     fi
   ) >/dev/null 2>&1 &
 fi
 
 if [[ "$AUTO_DISMISS_SIGNIN" != "0" ]]; then
   (
-    WIN_ID="$(DISPLAY="$DISPLAY_NUM" "$TEST_DIR/keysend.sh" wait-window 20 2>/dev/null || true)"
+    WIN_ID="$(DISPLAY="$DISPLAY_NUM" "$TEST_DIR/keysend.py" wait-window 20 2>/dev/null || true)"
     if [[ -n "$WIN_ID" ]]; then
       sleep 2
-      DISPLAY="$DISPLAY_NUM" "$TEST_DIR/keysend.sh" activate "$WIN_ID" || true
-      DISPLAY="$DISPLAY_NUM" "$TEST_DIR/keysend.sh" key Escape || true
+      DISPLAY="$DISPLAY_NUM" "$TEST_DIR/keysend.py" activate "$WIN_ID" || true
+      DISPLAY="$DISPLAY_NUM" "$TEST_DIR/keysend.py" key Escape || true
       sleep 1
-      DISPLAY="$DISPLAY_NUM" "$TEST_DIR/keysend.sh" click-window "$WIN_ID" 1050 145 1 || true
+      DISPLAY="$DISPLAY_NUM" "$TEST_DIR/keysend.py" click-window "$WIN_ID" 1050 145 1 || true
     fi
   ) >/dev/null 2>&1 &
 fi
