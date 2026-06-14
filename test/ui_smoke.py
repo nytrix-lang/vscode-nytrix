@@ -102,7 +102,7 @@ def cleanup_session(session):
 
 
 def press(env, key_name, *, shift=False, ctrl=False, alt=False, settle_s=0.35):
-    cmd = [str(ROOT / "keysend.sh"), "key", key_name]
+    cmd = [str(ROOT / "keysend.py"), "key", key_name]
     if shift:
         cmd.append("--shift")
     if ctrl:
@@ -114,19 +114,19 @@ def press(env, key_name, *, shift=False, ctrl=False, alt=False, settle_s=0.35):
 
 
 def combo(env, spec, *, settle_s=0.35):
-    run_retry([str(ROOT / "keysend.sh"), "combo", spec], env=env)
+    run_retry([str(ROOT / "keysend.py"), "combo", spec], env=env)
     time.sleep(settle_s)
 
 
 def type_text(env, text, *, settle_s=0.6):
-    run_retry([str(ROOT / "keysend.sh"), "type", text], env=env)
+    run_retry([str(ROOT / "keysend.py"), "type", text], env=env)
     time.sleep(settle_s)
 
 
 def click_window(env, win_id, x, y, *, button=1, settle_s=0.35):
     last = None
     for _ in range(5):
-        result = maybe_run([str(ROOT / "keysend.sh"), "click-window", win_id, str(x), str(y), str(button)], env=env)
+        result = maybe_run([str(ROOT / "keysend.py"), "click-window", win_id, str(x), str(y), str(button)], env=env)
         if result.returncode == 0:
             time.sleep(settle_s)
             return
@@ -204,11 +204,11 @@ def record_step(artifacts, label):
 
 
 def focus_editor(env, win_id):
-    maybe_run([str(ROOT / "keysend.sh"), "activate", win_id], env=env)
+    maybe_run([str(ROOT / "keysend.py"), "activate", win_id], env=env)
     time.sleep(0.2)
-    maybe_run([str(ROOT / "keysend.sh"), "combo", "Ctrl+1"], env=env)
+    maybe_run([str(ROOT / "keysend.py"), "combo", "Ctrl+1"], env=env)
     time.sleep(0.2)
-    maybe_run([str(ROOT / "keysend.sh"), "key", "Escape"], env=env)
+    maybe_run([str(ROOT / "keysend.py"), "key", "Escape"], env=env)
     time.sleep(0.2)
 
 
@@ -248,12 +248,12 @@ def focus_token(env, win_id, file_path, needle, *, occurrence=1, char_offset=0):
 
 def dismiss_signin_overlay(env, win_id):
     for cmd in (
-        [str(ROOT / "keysend.sh"), "key", "Escape"],
-        [str(ROOT / "keysend.sh"), "click-window", win_id, "840", "650", "1"],
-        [str(ROOT / "keysend.sh"), "click-window", win_id, "930", "650", "1"],
-        [str(ROOT / "keysend.sh"), "click-window", win_id, "890", "145", "1"],
-        [str(ROOT / "keysend.sh"), "click-window", win_id, "1110", "145", "1"],
-        [str(ROOT / "keysend.sh"), "key", "Escape"],
+        [str(ROOT / "keysend.py"), "key", "Escape"],
+        [str(ROOT / "keysend.py"), "click-window", win_id, "840", "650", "1"],
+        [str(ROOT / "keysend.py"), "click-window", win_id, "930", "650", "1"],
+        [str(ROOT / "keysend.py"), "click-window", win_id, "890", "145", "1"],
+        [str(ROOT / "keysend.py"), "click-window", win_id, "1110", "145", "1"],
+        [str(ROOT / "keysend.py"), "key", "Escape"],
     ):
         maybe_run(cmd, env=env)
         time.sleep(0.4)
@@ -286,11 +286,11 @@ def show_quick_fix_menu(env, win_id, *, settle_s=0.9):
 
 def stabilize_workspace(env, win_id):
     dismiss_signin_overlay(env, win_id)
-    maybe_run([str(ROOT / "keysend.sh"), "activate", win_id], env=env)
+    maybe_run([str(ROOT / "keysend.py"), "activate", win_id], env=env)
     time.sleep(0.25)
-    maybe_run([str(ROOT / "keysend.sh"), "key", "Escape"], env=env)
+    maybe_run([str(ROOT / "keysend.py"), "key", "Escape"], env=env)
     time.sleep(0.15)
-    maybe_run([str(ROOT / "keysend.sh"), "key", "Escape"], env=env)
+    maybe_run([str(ROOT / "keysend.py"), "key", "Escape"], env=env)
     time.sleep(0.15)
     focus_editor(env, win_id)
     press(env, "Escape", settle_s=0.2)
@@ -452,8 +452,8 @@ def main():
     keep_session = args.keep_session
     try:
         nested_env = {**env, "DISPLAY": display}
-        win_id = run([str(ROOT / "keysend.sh"), "wait-window", str(args.wait_seconds)], env=nested_env).stdout.strip()
-        run([str(ROOT / "keysend.sh"), "activate", win_id], env=nested_env)
+        win_id = run([str(ROOT / "keysend.py"), "wait-window", str(args.wait_seconds)], env=nested_env).stdout.strip()
+        run([str(ROOT / "keysend.py"), "activate", win_id], env=nested_env)
         dismiss_signin_overlay(nested_env, win_id)
         stabilize_workspace(nested_env, win_id)
 
@@ -469,7 +469,7 @@ def main():
 
         capture_png(nested_env, artifacts / "01_ui_root.png")
         capture_png(nested_env, artifacts / "02_vscode_window.png", window=win_id)
-        geom = run([str(ROOT / "keysend.sh"), "window-geom", win_id], env=nested_env).stdout.strip()
+        geom = run([str(ROOT / "keysend.py"), "window-geom", win_id], env=nested_env).stdout.strip()
         (artifacts / "window_geom.txt").write_text(geom + "\n", encoding="utf-8")
         (artifacts / "session.json").write_text(json.dumps(session, indent=2) + "\n", encoding="utf-8")
         (artifacts / "launch.txt").write_text(launch.stdout, encoding="utf-8")
@@ -533,7 +533,7 @@ def main():
         if session.get("host_display"):
             host_env = {**env, "DISPLAY": session["host_display"]}
             host_xephyr_win = run(
-                [str(ROOT / "keysend.sh"), "wait-window", str(args.wait_seconds), "Nytrix Xephyr"],
+                [str(ROOT / "keysend.py"), "wait-window", str(args.wait_seconds), "Nytrix Xephyr"],
                 env=host_env,
             ).stdout.strip()
             capture_png(host_env, artifacts / "19_host_root.png")
@@ -544,11 +544,11 @@ def main():
                     encoding="utf-8",
                 )
             host_geom_text = run(
-                [str(ROOT / "keysend.sh"), "window-geom", host_xephyr_win],
+                [str(ROOT / "keysend.py"), "window-geom", host_xephyr_win],
                 env=host_env,
             ).stdout.strip()
             host_state = run(
-                [str(ROOT / "keysend.sh"), "wm-state", host_xephyr_win],
+                [str(ROOT / "keysend.py"), "wm-state", host_xephyr_win],
                 env=host_env,
             ).stdout.strip()
             (artifacts / "host_window_geom.txt").write_text(host_geom_text + "\n", encoding="utf-8")
@@ -568,9 +568,9 @@ def main():
             if session.get("restore_focus") and session.get("host_active_window") not in ("", "0x0"):
                 active_after = host_xephyr_win
                 for _ in range(4):
-                    run([str(ROOT / "keysend.sh"), "activate", session["host_active_window"]], env=host_env)
+                    run([str(ROOT / "keysend.py"), "activate", session["host_active_window"]], env=host_env)
                     time.sleep(0.6)
-                    active_after = run([str(ROOT / "keysend.sh"), "active-window"], env=host_env).stdout.strip()
+                    active_after = run([str(ROOT / "keysend.py"), "active-window"], env=host_env).stdout.strip()
                     if active_after.lower() != host_xephyr_win.lower():
                         break
                 active_report = {

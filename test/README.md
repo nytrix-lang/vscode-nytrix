@@ -1,69 +1,72 @@
 # Nytrix VS Code Tests
 
-Run:
+Compact test harness for the Nytrix VS Code extension. One shell entrypoint runs everything:
 
 ```sh
-cd /home/e/vscode-nytrix
-npm run validate
-
-cd test
+cd /home/e/vscode-nytrix/test
 ./run.sh smoke
-./run.sh headless-clickthrough
+./run.sh all
+./run.sh headless-all
 ```
 
-Use `npm run validate` for the compact JS smoke runner and manifest checks. Use
-`./run.sh smoke` for `ny-lsp` and debug-adapter protocol checks. Use a UI target when changing
-editor wiring, menus, keybindings, highlighting, or sandbox launch.
-
-## Test Map
-
-| Target | Covers | Runtime |
-| --- | --- | --- |
-| `npm run validate` | JS syntax, metadata/package rules, bootstrap/code-action/symbol smokes | short |
-| `./run.sh smoke` | JS smokes plus raw LSP and DAP protocol checks | medium |
-| `./run.sh clickthrough` | Visible VS Code session with command palette, diagnostics, and editor flow | long |
-| `./run.sh headless-clickthrough` | Same UI path through `Xvfb` | long |
-| `./run.sh syntax-ui` | Grammar/highlighting screenshots | long |
-| `./run.sh full` | Protocol smoke plus visible clickthrough | longest |
+Use `smoke` for fast local checks, `all` before publishing visible UI changes, and `headless-all` for CI or machines without a desktop session.
 
 ## Files
 
-- `js_smoke.js`: shared runner for the compact JS suite.
-- `metadata_smoke.js`: package/manifest drift, commands, settings, walkthroughs, package contents.
-- `bootstrap_smoke.js`: managed Nytrix checkout plan.
-- `code_actions_smoke.js`: quick fixes, formatter/analyzer actions.
-- `debug_symbol_smoke.js`: compiler-backed symbol index and debug helpers.
-- `lsp_smoke.py`: raw JSON-RPC LSP behavior.
-- `dap_smoke.py`: raw stdio DAP behavior.
-- `ui_smoke.py`: automated VS Code session and screenshots.
-- `xephyr-smoke.sh`: isolated VS Code sandbox launcher.
-- `keysend.py`: targeted X11 input helper; `keysend.sh` is its wrapper.
+| File | Purpose |
+| --- | --- |
+| `run.sh` | single dispatcher for every target |
+| `js_smoke.js` | bundled JS extension/unit smoke checks |
+| `protocol_smoke.py` | bundled raw LSP + DAP protocol checks |
+| `ui_smoke.py` | VS Code UI/clickthrough/assist/syntax smoke runner |
+| `xephyr-smoke.sh` | isolated VS Code sandbox launcher |
+| `keysend.py` | focused X11 input helper used by UI tests |
 
-## Commands
+## Targets
+
+| Target | Covers |
+| --- | --- |
+| `js` / `unit` | JS metadata, bootstrap, code actions, debug symbol helpers |
+| `lsp` | raw JSON-RPC language-server behavior |
+| `dap` | raw debug-adapter protocol behavior |
+| `protocol` | `lsp + dap` |
+| `check` | `npm run check` |
+| `validate` | `npm run validate` |
+| `smoke` | `check + js + protocol` |
+| `ui` | visible VS Code UI smoke |
+| `clickthrough` | visible editor/menu flow with artifacts |
+| `assist-ui` | focused assist/code-action UI pass |
+| `syntax-ui` | focused grammar screenshot pass |
+| `headless-ui` | UI smoke through Xvfb |
+| `headless-clickthrough` | clickthrough through Xvfb |
+| `headless-syntax-ui` | syntax UI through Xvfb |
+| `xephyr` | raw sandbox launcher |
+| `all` / `full` | `smoke + clickthrough` |
+| `headless-all` | `smoke + headless-clickthrough` |
+
+## Environment
+
+| Variable | Purpose |
+| --- | --- |
+| `NYTRIX_REPO_ROOT` | override Nytrix repo discovery |
+| `NYTRIX_VSCODE_EXTENSION_ROOT` | override extension root discovery |
+| `NYTRIX_BIN` | path to `ny` |
+| `NYTRIX_LSP_BIN` / `NYTRIX_LSP` | path to `ny-lsp` |
+| `NYTRIX_DEBUG_ADAPTER` | path to `nytrixDebugAdapter.js` |
+| `NYTRIX_GDB_BIN` / `GDB_BIN` | path to `gdb` |
+| `CODE_BIN` | path to VS Code `code` binary |
+| `NYTRIX_VSCODE_TEST_HEADLESS=1` | force Xvfb UI runs |
+| `NYTRIX_VSCODE_TEST_DISPLAY=:99` | force display selection |
+| `NYTRIX_VSCODE_TEST_CLOSE_OLD=0` | keep old sandboxes alive |
+
+## Manual sandbox control
+
+`./run.sh xephyr` prints the display, window id, workspace, and sandbox paths. Drive it manually with:
 
 ```sh
-./run.sh js
-./run.sh lsp
-./run.sh dap
-./run.sh headless-ui
+DISPLAY=:99 ./keysend.py activate 0x<window-id>
+DISPLAY=:99 ./keysend.py key F12
+DISPLAY=:99 ./keysend.py click-window 0x<window-id> 960 650 1
 ```
 
-`./run.sh xephyr` prints the sandbox paths and display id. To drive that window
-manually:
-
-```sh
-DISPLAY=:99 ./keysend.sh activate 0x<window-id>
-DISPLAY=:99 ./keysend.sh key F12
-DISPLAY=:99 ./keysend.sh click-window 0x<window-id> 960 650 1
-```
-
-## Sandbox Rules
-
-- Tests use private `user-data`, `extensions`, and artifact directories.
-- UI runs auto-pick a display from `:99..:109` unless
-  `NYTRIX_VSCODE_TEST_DISPLAY` is set.
-- Fresh UI runs close older `nytrix-vscode-test*` sessions by default. Set
-  `NYTRIX_VSCODE_TEST_CLOSE_OLD=0` only when intentionally comparing sessions.
-- `NYTRIX_VSCODE_TEST_HEADLESS=1` switches UI runs to `Xvfb`.
-- `keysend.sh` prefers `/tmp/ny_gui_venv/bin/python` because it has `python-xlib`
-  on this machine.
+UI tests use private `user-data`, `extensions`, workspace, log, and artifact directories under `/tmp/nytrix-vscode-test*` by default.
