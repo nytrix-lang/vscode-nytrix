@@ -7,6 +7,7 @@ const path = require("path");
 const CORE_PACKAGE_FILES = [
   "package.json",
   "README.md",
+  "CHANGELOG.md",
   "LICENSE",
   "logo.png",
   "language-configuration.json",
@@ -21,26 +22,36 @@ const CORE_PACKAGE_FILES = [
   "snippets/nshape.code-snippets"
 ];
 
+function errorMessage(err) {
+  return err && err.message ? err.message : String(err);
+}
+
+function readJson(file) {
+  try {
+    return JSON.parse(fs.readFileSync(file, "utf8"));
+  } catch (err) {
+    throw new Error(`cannot read ${path.basename(file)}: ${errorMessage(err)}`);
+  }
+}
+
 function packagePathForDependency(lock, fromPath, name) {
   const local = fromPath ? `${fromPath}/node_modules/${name}` : `node_modules/${name}`;
-  if (lock.packages[local]) {
-    return local;
-  }
   const hoisted = `node_modules/${name}`;
-  return lock.packages[hoisted] ? hoisted : "";
+  return lock.packages[local] ? local : (lock.packages[hoisted] ? hoisted : "");
 }
 
 function productionDependencyDirs(cwd) {
-  const lock = JSON.parse(fs.readFileSync(path.join(cwd, "package-lock.json"), "utf8"));
+  const lock = readJson(path.join(cwd, "package-lock.json"));
+  if (!lock.packages || !lock.packages[""]) {
+    throw new Error("package-lock.json is missing the root package entry; run npm install to refresh it");
+  }
   const seen = new Set([""]);
   const dirs = [cwd];
   const visit = (packagePath) => {
-    const entry = lock.packages[packagePath] || {};
-    for (const name of Object.keys(entry.dependencies || {})) {
+    const deps = (lock.packages[packagePath] || {}).dependencies || {};
+    for (const name of Object.keys(deps).sort()) {
       const childPath = packagePathForDependency(lock, packagePath, name);
-      if (!childPath || seen.has(childPath)) {
-        continue;
-      }
+      if (!childPath || seen.has(childPath)) continue;
       seen.add(childPath);
       dirs.push(path.join(cwd, childPath));
       visit(childPath);
@@ -52,31 +63,18 @@ function productionDependencyDirs(cwd) {
 
 function walkFiles(root, rel = "") {
   const dir = path.join(root, rel);
-  if (!fs.existsSync(dir)) {
-    return [];
-  }
-  const out = [];
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const child = rel ? `${rel}/${entry.name}` : entry.name;
-    if (entry.isDirectory()) {
-      out.push(...walkFiles(root, child));
-    } else if (entry.isFile()) {
-      out.push(child);
-    }
-  }
-  return out;
+    return entry.isDirectory() ? walkFiles(root, child) : (entry.isFile() ? [child] : []);
+  });
 }
 
 function fallbackPackageList(cwd) {
   const files = new Set(CORE_PACKAGE_FILES.filter((file) => fs.existsSync(path.join(cwd, file))));
-  for (const depDir of productionDependencyDirs(cwd).slice(1)) {
-    if (!fs.existsSync(depDir)) {
-      continue;
-    }
+  for (const depDir of productionDependencyDirs(cwd).slice(1).filter(fs.existsSync)) {
     const rel = path.relative(cwd, depDir).replace(/\\/g, "/");
-    for (const file of walkFiles(cwd, rel)) {
-      files.add(file);
-    }
+    for (const file of walkFiles(cwd, rel)) files.add(file);
   }
   return [...files].sort();
 }
@@ -87,29 +85,36 @@ function loadVsce() {
       npm: require("@vscode/vsce/out/npm"),
       packageApi: require("@vscode/vsce/out/package")
     };
-  } catch (err) {
-    return { error: err };
+  } catch (error) {
+    return { error };
   }
+}
+
+async function listPackageFiles(cwd, vsce) {
+  if (!vsce.error) {
+    vsce.npm.getDependencies = async (root, dependencies) => (
+      dependencies === "none" ? [root] : productionDependencyDirs(root)
+    );
+    return vsce.packageApi.listFiles({ cwd, useYarn: false });
+  }
+  return fallbackPackageList(cwd);
 }
 
 async function main() {
   const cwd = process.cwd();
   const vsce = loadVsce();
+  const listOnly = process.argv.includes("--list");
+
+  if (listOnly) {
+    console.log((await listPackageFiles(cwd, vsce)).join("\n"));
+    return;
+  }
   if (vsce.error) {
-    if (process.argv.includes("--list")) {
-      console.log(fallbackPackageList(cwd).join("\n"));
-      return;
-    }
-    throw new Error("@vscode/vsce is not installed. Run npm install, or use npm run package:ls for the dependency-free file list.");
+    throw new Error(`@vscode/vsce is not installed (${errorMessage(vsce.error)}). Run npm install, or use npm run package:ls to inspect the dependency-free file list.`);
   }
   vsce.npm.getDependencies = async (root, dependencies) => (
     dependencies === "none" ? [root] : productionDependencyDirs(root)
   );
-  if (process.argv.includes("--list")) {
-    const files = await vsce.packageApi.listFiles({ cwd, useYarn: false });
-    console.log(files.join("\n"));
-    return;
-  }
   await vsce.packageApi.packageCommand({ cwd, useYarn: false });
 }
 
@@ -117,7 +122,10 @@ module.exports = {
   CORE_PACKAGE_FILES,
   fallbackPackageList,
   packagePathForDependency,
-  productionDependencyDirs
+  productionDependencyDirs,
+  errorMessage,
+  readJson,
+  walkFiles
 };
 
 if (require.main === module) {
