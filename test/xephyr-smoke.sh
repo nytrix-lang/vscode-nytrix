@@ -10,7 +10,6 @@ HOST_DISPLAY="${DISPLAY:-}"
 CODE_BIN="${CODE_BIN:-$(command -v code)}"
 LSP_BIN="${NYTRIX_LSP_BIN:-$REPO_ROOT/build/release/ny-lsp}"
 NY_BIN="${NYTRIX_BIN:-$REPO_ROOT/build/release/ny}"
-GDB_BIN="${NYTRIX_GDB_BIN:-${GDB_BIN:-$(command -v gdb || true)}}"
 EXT_DIR="$TEST_ROOT/extensions/x3ric.nytrix-0.1.0"
 USER_DIR="$TEST_ROOT/user-data"
 WORK_DIR="$TEST_ROOT/workspace"
@@ -288,7 +287,6 @@ cat >"$USER_DIR/User/settings.json" <<JSON
   "nytrix.path": "$NY_BIN",
   "nytrix.lsp.enabled": true,
   "nytrix.lsp.path": "$LSP_BIN",
-  "nytrix.debug.gdbPath": "$GDB_BIN",
   "nytrix.test.runtimeSuitePath": "etc/tests/rt",
   "nytrix.repl.revealTerminal": false
 }

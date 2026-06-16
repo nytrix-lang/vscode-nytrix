@@ -2,6 +2,27 @@
 
 Compact release notes for the Nytrix VS Code extension.
 
+### 0.1.7 - 2026-06-16
+
+- Removed the duplicated JS/gdb debug adapter path from the extension runtime.
+- Simplified debugging around the real `ny-dap` executable and autodiscovery.
+- Added bootstrap path setup for `ny-dap` alongside `ny` and `ny-lsp`.
+- Polished LSP startup/restart handling and fixed auto-bootstrap restart after installing `ny-lsp`.
+- Kept extension-side symbols/completions/diagnostics as fallback-only behavior when `ny-lsp` is not ready.
+
+### 0.1.6 - 2026-06-16
+
+- Merged extension docs into one compact README.
+- Replaced `LICENSE.md` with a standard `LICENSE` file.
+- Renamed the docs command to `Nytrix: Open README`.
+- Removed standalone DETAILS/CHANGELOG packaging noise.
+
+### 0.1.5 - 2026-06-16
+
+- Added external `ny-dap` autodiscovery.
+- Added `.nshape` snippets, tasks, and commands for shape files/suites.
+- Refined debug/toolchain docs.
+
 ## 0.1.4 - 2026-06-06
 
 - Updated snippets, highlighting, and fallback symbol parsing for

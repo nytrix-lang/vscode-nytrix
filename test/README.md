@@ -17,7 +17,7 @@ Use `smoke` for fast local checks, `all` before publishing visible UI changes, a
 | --- | --- |
 | `run.sh` | single dispatcher for every target |
 | `js_smoke.js` | bundled JS extension/unit smoke checks |
-| `protocol_smoke.py` | bundled raw LSP + DAP protocol checks |
+| `protocol_smoke.py` | raw real `ny-lsp` + `ny-dap` protocol checks |
 | `ui_smoke.py` | VS Code UI/clickthrough/assist/syntax smoke runner |
 | `xephyr-smoke.sh` | isolated VS Code sandbox launcher |
 | `keysend.py` | focused X11 input helper used by UI tests |
@@ -28,7 +28,7 @@ Use `smoke` for fast local checks, `all` before publishing visible UI changes, a
 | --- | --- |
 | `js` / `unit` | JS metadata, bootstrap, code actions, debug symbol helpers |
 | `lsp` | raw JSON-RPC language-server behavior |
-| `dap` | raw debug-adapter protocol behavior |
+| `dap` | raw `ny-dap` initialize/disconnect behavior |
 | `protocol` | `lsp + dap` |
 | `check` | `npm run check` |
 | `validate` | `npm run validate` |
@@ -52,8 +52,7 @@ Use `smoke` for fast local checks, `all` before publishing visible UI changes, a
 | `NYTRIX_VSCODE_EXTENSION_ROOT` | override extension root discovery |
 | `NYTRIX_BIN` | path to `ny` |
 | `NYTRIX_LSP_BIN` / `NYTRIX_LSP` | path to `ny-lsp` |
-| `NYTRIX_DEBUG_ADAPTER` | path to `nytrixDebugAdapter.js` |
-| `NYTRIX_GDB_BIN` / `GDB_BIN` | path to `gdb` |
+| `NYTRIX_DAP_BIN` / `NYTRIX_DAP` | path to `ny-dap` |
 | `CODE_BIN` | path to VS Code `code` binary |
 | `NYTRIX_VSCODE_TEST_HEADLESS=1` | force Xvfb UI runs |
 | `NYTRIX_VSCODE_TEST_DISPLAY=:99` | force display selection |
