@@ -2304,7 +2304,7 @@ async function startLsp(context) {
   const { LanguageClient, State } = languageClient;
   const serverOptions = {
     command: lsp.path,
-    args: cfg().get("lsp.arguments", []),
+    args: configArray(cfg().get("lsp.arguments", [])),
     options: {
       env: toolEnv()
     }
@@ -3514,7 +3514,7 @@ class NytrixSignatureProvider {
 }
 
 class NytrixDebugConfigurationProvider {
-  async resolveDebugConfiguration(folder, config) {
+  async resolveDebugConfiguration(folder, config = {}) {
     const editor = activeNytrixEditor();
     const request = config.request || "launch";
     if (!(config.dapPath || tools().dap.path)) {
@@ -3565,7 +3565,8 @@ class NytrixDebugConfigurationProvider {
 
 class NytrixDebugAdapterFactory {
   createDebugAdapterDescriptor(session) {
-    const cfgPath = expandVars(session.configuration.dapPath || cfg().get("debugAdapter.path", ""));
+    const config = (session && session.configuration) || {};
+    const cfgPath = expandVars(config.dapPath || cfg().get("debugAdapter.path", ""));
     const dap = cfgPath && isRunnable(cfgPath)
       ? { path: cfgPath, source: "launch/settings" }
       : findDebugAdapter(extensionContext, tools(extensionContext).dap);
@@ -3575,12 +3576,8 @@ class NytrixDebugAdapterFactory {
       );
       return undefined;
     }
-    const args = [
-      ...cfg().get("debugAdapter.arguments", []),
-      ...(session.configuration.dapArgs || [])
-    ];
-    return new vscode.DebugAdapterExecutable(dap.path, args, {
-      cwd: expandVars(session.configuration.cwd || findRepoRoot()),
+    return new vscode.DebugAdapterExecutable(dap.path, configArray(config.dapArgs, cfg().get("debugAdapter.arguments", [])), {
+      cwd: expandVars(config.cwd || findRepoRoot()),
       env: toolEnv()
     });
   }

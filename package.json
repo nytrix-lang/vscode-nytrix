@@ -2,7 +2,7 @@
   "name": "nytrix",
   "icon": "logo.png",
   "publisher": "x3ric",
-  "version": "0.1.7",
+  "version": "0.1.9",
   "displayName": "Nytrix",
   "description": "Nytrix language support: syntax, real ny-lsp/ny-dap integration, run/test, and tooling.",
   "categories": [
