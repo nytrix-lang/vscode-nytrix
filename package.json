@@ -2,9 +2,9 @@
   "name": "nytrix",
   "icon": "logo.png",
   "publisher": "x3ric",
-  "version": "0.1.4",
+  "version": "0.1.7",
   "displayName": "Nytrix",
-  "description": "Nytrix language support: syntax, LSP diagnostics, run/debug, and tooling.",
+  "description": "Nytrix language support: syntax, real ny-lsp/ny-dap integration, run/test, and tooling.",
   "categories": [
     "Programming Languages",
     "Debuggers",
@@ -44,7 +44,7 @@
   },
   "main": "./src/extension.js",
   "scripts": {
-    "check": "node --check src/extension.js && node --check src/nytrixDebugAdapter.js && node --check scripts/package.js",
+    "check": "node --check src/extension.js && node --check scripts/package.js",
     "test:js": "node test/js_smoke.js",
     "validate": "npm run check && npm run test:js",
     "prepackage": "npm run validate",
@@ -53,6 +53,7 @@
   },
   "activationEvents": [
     "onLanguage:nytrix",
+    "onLanguage:nshape",
     "onCommand:nytrix.pickProcess",
     "onDebug",
     "onDebugResolve:nytrix",
@@ -73,6 +74,18 @@
           ".ny"
         ],
         "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "nshape",
+        "aliases": [
+          "Nytrix Shape",
+          "NShape",
+          "nshape"
+        ],
+        "extensions": [
+          ".nshape"
+        ],
+        "configuration": "./nshape-language-configuration.json"
       }
     ],
     "grammars": [
@@ -88,6 +101,17 @@
           "meta.embedded.inline.sql.nytrix": "sql",
           "meta.embedded.inline.xml.nytrix": "xml",
           "meta.embedded.inline.yaml.nytrix": "yaml"
+        }
+      },
+      {
+        "language": "nshape",
+        "scopeName": "source.nytrix-shape",
+        "path": "./nshape.tmLanguage.json",
+        "embeddedLanguages": {
+          "meta.embedded.block.nytrix.nytrix-shape": "nytrix",
+          "meta.embedded.block.c.nytrix-shape": "c",
+          "source.nytrix": "nytrix",
+          "source.c": "c"
         }
       },
       {
@@ -110,6 +134,10 @@
       {
         "language": "nytrix",
         "path": "./snippets/nytrix.code-snippets"
+      },
+      {
+        "language": "nshape",
+        "path": "./snippets/nshape.code-snippets"
       }
     ],
     "commands": [
@@ -210,6 +238,18 @@
         "icon": "$(debug-alt)"
       },
       {
+        "command": "nytrix.runShape",
+        "title": "Nytrix: Run Shape File",
+        "category": "Nytrix",
+        "icon": "$(beaker)"
+      },
+      {
+        "command": "nytrix.runShapeSuite",
+        "title": "Nytrix: Run Shape Suite",
+        "category": "Nytrix",
+        "icon": "$(symbol-array)"
+      },
+      {
         "command": "nytrix.expandFile",
         "title": "Nytrix: Expand File",
         "category": "Nytrix",
@@ -294,8 +334,8 @@
         "icon": "$(settings-gear)"
       },
       {
-        "command": "nytrix.openDetails",
-        "title": "Nytrix: Open Extension Details",
+        "command": "nytrix.openReadme",
+        "title": "Nytrix: Open README",
         "category": "Nytrix",
         "icon": "$(book)"
       },
@@ -404,6 +444,11 @@
           "command": "nytrix.debugFile",
           "when": "resourceLangId == nytrix",
           "group": "navigation@2"
+        },
+        {
+          "command": "nytrix.runShape",
+          "when": "resourceLangId == nshape",
+          "group": "navigation@1"
         }
       ],
       "editor/context": [
@@ -516,6 +561,16 @@
           "command": "nytrix.navigateForward",
           "when": "resourceLangId == nytrix",
           "group": "navigation@10"
+        },
+        {
+          "command": "nytrix.runShape",
+          "when": "resourceLangId == nshape",
+          "group": "2_workspace@0"
+        },
+        {
+          "command": "nytrix.runShapeSuite",
+          "when": "resourceLangId == nshape",
+          "group": "2_workspace@1"
         }
       ],
       "commandPalette": [
@@ -635,7 +690,7 @@
           "command": "nytrix.openSettings"
         },
         {
-          "command": "nytrix.openDetails"
+          "command": "nytrix.openReadme"
         },
         {
           "command": "nytrix.goToDefinition",
@@ -680,6 +735,14 @@
         {
           "command": "nytrix.navigateForward",
           "when": "resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.runShape",
+          "when": "resourceLangId == nshape"
+        },
+        {
+          "command": "nytrix.runShapeSuite",
+          "when": "resourceLangId == nshape || resourceLangId == nytrix"
         }
       ]
     },
@@ -833,8 +896,8 @@
           },
           {
             "id": "nytrix.debug",
-            "title": "Debug with the built-in adapter",
-            "description": "Use **Nytrix: Debug File** for a launch config backed by `ny` and `gdb`, or add a `nytrix` debug configuration from `launch.json`.",
+            "title": "Debug with ny-dap",
+            "description": "Use **Nytrix: Debug File** for a launch config backed by the real `ny-dap`, or add a `nytrix` debug configuration from `launch.json`.",
             "completionEvents": [
               "onCommand:nytrix.debugFile"
             ]
@@ -851,8 +914,6 @@
       {
         "type": "nytrix",
         "label": "Nytrix",
-        "program": "./src/nytrixDebugAdapter.js",
-        "runtime": "node",
         "languages": [
           "nytrix"
         ],
@@ -895,7 +956,7 @@
               },
               "dapPath": {
                 "type": "string",
-                "description": "Explicit path to an external Nytrix Debug Adapter Protocol server when the built-in adapter is disabled."
+                "description": "Explicit path to ny-dap for this session. Empty uses nytrix.debugAdapter.path, NYTRIX_DAP, workspace autodetect, bootstrap roots, or PATH."
               },
               "dapArgs": {
                 "type": "array",
@@ -907,10 +968,6 @@
               "nyPath": {
                 "type": "string",
                 "description": "Path to ny for adapters that need the compiler."
-              },
-              "gdbPath": {
-                "type": "string",
-                "description": "Path to gdb for the built-in Nytrix native debug adapter."
               },
               "compilerArgs": {
                 "type": "array",
@@ -973,7 +1030,7 @@
               },
               "program": {
                 "type": "string",
-                "description": "Optional executable path, used by gdb for symbols."
+                "description": "Optional executable or source path passed through to ny-dap for attach sessions."
               },
               "cwd": {
                 "type": "string",
@@ -993,10 +1050,6 @@
                 "type": "boolean",
                 "description": "Enable verbose adapter tracing.",
                 "default": false
-              },
-              "gdbPath": {
-                "type": "string",
-                "description": "Path to gdb for the built-in Nytrix native debug adapter."
               },
               "sourceFileMap": {
                 "type": "object",
@@ -1034,7 +1087,7 @@
         "configurationSnippets": [
           {
             "label": "Nytrix: Debug current file",
-            "description": "Debug the active Nytrix file through the built-in gdb/MI adapter.",
+            "description": "Debug the active Nytrix file through ny-dap.",
             "body": {
               "type": "nytrix",
               "request": "launch",
@@ -1054,7 +1107,7 @@
           },
           {
             "label": "Nytrix: Attach to process",
-            "description": "Attach the built-in gdb/MI adapter to a running Nytrix process.",
+            "description": "Attach ny-dap to a running Nytrix process.",
             "body": {
               "type": "nytrix",
               "request": "attach",
@@ -1076,7 +1129,22 @@
         "properties": {
           "task": {
             "type": "string",
-            "description": "Nytrix task id: check, run, expand, trace, dump-ast, dump-llvm, dump-stats, format, analyze, tests, profile."
+            "description": "Nytrix task id: check, run, expand, trace, dump-ast, dump-llvm, dump-stats, format, analyze, tests, shapes, shape, profile.",
+            "enum": [
+              "check",
+              "run",
+              "expand",
+              "trace",
+              "dump-ast",
+              "dump-llvm",
+              "dump-stats",
+              "format",
+              "analyze",
+              "tests",
+              "shapes",
+              "shape",
+              "profile"
+            ]
           }
         }
       }
@@ -1158,12 +1226,7 @@
         "nytrix.debugAdapter.path": {
           "type": "string",
           "default": "",
-          "description": "Explicit path to an external Nytrix Debug Adapter Protocol server. Leave empty for the built-in adapter."
-        },
-        "nytrix.debugAdapter.useInternal": {
-          "type": "boolean",
-          "default": true,
-          "description": "Use the built-in gdb/MI-backed Nytrix debug adapter. Disable only when nytrix.debugAdapter.path points to a compatible external server."
+          "description": "Explicit path to ny-dap. Empty means auto-detect from workspace builds, NYTRIX_DAP, bootstrap roots, or PATH."
         },
         "nytrix.debugAdapter.arguments": {
           "type": "array",
@@ -1172,11 +1235,6 @@
             "type": "string"
           },
           "description": "Extra arguments passed to the Nytrix debug adapter."
-        },
-        "nytrix.debug.gdbPath": {
-          "type": "string",
-          "default": "",
-          "description": "Path to gdb for the built-in native debug adapter. Empty means PATH."
         },
         "nytrix.debug.compilerArguments": {
           "type": "array",
@@ -1189,12 +1247,12 @@
         "nytrix.debug.dwarfVersion": {
           "type": "number",
           "default": 0,
-          "description": "DWARF version for built-in debug launches. 0 lets the compiler choose."
+          "description": "DWARF version for ny-dap launches. 0 lets the compiler choose."
         },
         "nytrix.debug.debugLocals": {
           "type": "boolean",
           "default": false,
-          "description": "Emit fuller local/argument debug info for built-in debug launches. This can improve variables/evaluate fidelity but the safer default is off."
+          "description": "Emit fuller local/argument debug info for ny-dap launches. This can improve variables/evaluate fidelity but the safer default is off."
         },
         "nytrix.debug.justMyCode": {
           "type": "boolean",
@@ -1204,22 +1262,22 @@
         "nytrix.debug.traceRuntime": {
           "type": "boolean",
           "default": false,
-          "description": "Enable Nytrix runtime call tracing in built-in debug launches."
+          "description": "Enable Nytrix runtime call tracing in ny-dap launches."
         },
         "nytrix.debug.traceValues": {
           "type": "boolean",
           "default": false,
-          "description": "Include traced return values in built-in debug launches."
+          "description": "Include traced return values in ny-dap launches."
         },
         "nytrix.debug.traceVerbose": {
           "type": "boolean",
           "default": false,
-          "description": "Include fine-grained traced source locations in built-in debug launches."
+          "description": "Include fine-grained traced source locations in ny-dap launches."
         },
         "nytrix.debug.traceFilter": {
           "type": "string",
           "default": "",
-          "description": "Optional function-name filter for built-in debug runtime tracing."
+          "description": "Optional function-name filter for ny-dap debug runtime tracing."
         },
         "nytrix.debug.outputDir": {
           "type": "string",
@@ -1370,6 +1428,11 @@
             "type": "string"
           },
           "description": "Environment variables added to Nytrix tool processes."
+        },
+        "nytrix.test.shapeSuitePath": {
+          "type": "string",
+          "default": "etc/tests/fuzz",
+          "description": "Shape/fuzz suite path passed to ny-test by Nytrix: Run Shape Suite."
         }
       }
     }

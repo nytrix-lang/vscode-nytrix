@@ -36,6 +36,14 @@
         "string",
         "comment"
       ]
+    },
+    {
+      "open": "'",
+      "close": "'",
+      "notIn": [
+        "string",
+        "comment"
+      ]
     }
   ],
   "surroundingPairs": [
@@ -54,10 +62,36 @@
     [
       "\"",
       "\""
+    ],
+    [
+      "'",
+      "'"
     ]
   ],
+  "wordPattern": "(-?\\d*\\.\\d\\w*)|([^`~!@#$%^&*()=+\\[{\\]}\\\\|;:'\",.<>/?\\s]+)",
   "indentationRules": {
-    "increaseIndentPattern": "^.*\\{\\s*(?:#.*)?$",
+    "increaseIndentPattern": "^.*\\{\\s*(?:(?:#|//).*)?$",
     "decreaseIndentPattern": "^\\s*\\}"
-  }
+  },
+  "folding": {
+    "markers": {
+      "start": "^\\s*(?:#|//)\\s*#?region\\b",
+      "end": "^\\s*(?:#|//)\\s*#?endregion\\b"
+    }
+  },
+  "onEnterRules": [
+    {
+      "beforeText": "^.*\\{\\s*$",
+      "afterText": "^\\s*\\}",
+      "action": {
+        "indent": "indentOutdent"
+      }
+    },
+    {
+      "beforeText": "^.*\\{\\s*$",
+      "action": {
+        "indent": "indent"
+      }
+    }
+  ]
 }

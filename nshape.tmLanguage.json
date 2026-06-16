@@ -1,14 +1,11 @@
 {
   "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
-  "name": "Nynth Shape",
+  "name": "Nytrix Shape",
   "fileTypes": [
     "nshape"
   ],
-  "scopeName": "source.nynth-shape",
+  "scopeName": "source.nytrix-shape",
   "patterns": [
-    {
-      "include": "#comment"
-    },
     {
       "include": "#source-ny"
     },
@@ -16,10 +13,19 @@
       "include": "#source-c"
     },
     {
+      "include": "#source-generic"
+    },
+    {
+      "include": "#comment"
+    },
+    {
       "include": "#shape"
     },
     {
-      "include": "#keyword"
+      "include": "#field"
+    },
+    {
+      "include": "#constant"
     },
     {
       "include": "#string"
@@ -38,11 +44,11 @@
     "comment": {
       "patterns": [
         {
-          "name": "comment.line.number-sign.nynth-shape",
+          "name": "comment.line.number-sign.nytrix-shape",
           "match": "^\\s*#.*$"
         },
         {
-          "name": "comment.line.double-slash.nynth-shape",
+          "name": "comment.line.double-slash.nytrix-shape",
           "match": "//.*$"
         }
       ]
@@ -50,20 +56,31 @@
     "source-ny": {
       "patterns": [
         {
-          "name": "meta.embedded.block.nytrix.nynth-shape",
-          "begin": "^(\\s*)(source)\\s+([A-Za-z0-9_.-]+)\\s+(<<)'NY'\\s*$",
+          "name": "meta.embedded.block.nytrix.nytrix-shape",
+          "begin": "^(\\s*)(source)\\s+((?:ny|nytrix)[A-Za-z0-9_.-]*)\\s+(<<)('?)\\b(NY)\\5\\s*$",
           "beginCaptures": {
             "2": {
-              "name": "keyword.control.source.nynth-shape"
+              "name": "keyword.control.source.nytrix-shape"
             },
             "3": {
-              "name": "entity.name.section.nynth-shape"
+              "name": "entity.name.section.nytrix-shape"
             },
             "4": {
-              "name": "punctuation.definition.heredoc.nynth-shape"
+              "name": "punctuation.definition.heredoc.nytrix-shape"
+            },
+            "5": {
+              "name": "punctuation.definition.string.begin.nytrix-shape"
+            },
+            "6": {
+              "name": "entity.name.tag.heredoc.nytrix-shape"
             }
           },
           "end": "^\\s*NY\\s*$",
+          "endCaptures": {
+            "0": {
+              "name": "entity.name.tag.heredoc.nytrix-shape"
+            }
+          },
           "patterns": [
             {
               "include": "source.nytrix"
@@ -75,20 +92,31 @@
     "source-c": {
       "patterns": [
         {
-          "name": "meta.embedded.block.c.nynth-shape",
-          "begin": "^(\\s*)(source)\\s+([A-Za-z0-9_.-]+)\\s+(<<)'C'\\s*$",
+          "name": "meta.embedded.block.c.nytrix-shape",
+          "begin": "^(\\s*)(source)\\s+((?:c|cc|cpp|cxx|h|hpp)[A-Za-z0-9_.+-]*)\\s+(<<)('?)\\b(C|CC|CPP)\\5\\s*$",
           "beginCaptures": {
             "2": {
-              "name": "keyword.control.source.nynth-shape"
+              "name": "keyword.control.source.nytrix-shape"
             },
             "3": {
-              "name": "entity.name.section.nynth-shape"
+              "name": "entity.name.section.nytrix-shape"
             },
             "4": {
-              "name": "punctuation.definition.heredoc.nynth-shape"
+              "name": "punctuation.definition.heredoc.nytrix-shape"
+            },
+            "5": {
+              "name": "punctuation.definition.string.begin.nytrix-shape"
+            },
+            "6": {
+              "name": "entity.name.tag.heredoc.nytrix-shape"
             }
           },
-          "end": "^\\s*C\\s*$",
+          "end": "^\\s*(?:C|CC|CPP)\\s*$",
+          "endCaptures": {
+            "0": {
+              "name": "entity.name.tag.heredoc.nytrix-shape"
+            }
+          },
           "patterns": [
             {
               "include": "source.c"
@@ -97,39 +125,106 @@
         }
       ]
     },
+    "source-generic": {
+      "patterns": [
+        {
+          "name": "meta.embedded.block.other.nytrix-shape",
+          "begin": "^(\\s*)(source)\\s+([A-Za-z0-9_.+-]+)\\s+(<<)('?)\\b([A-Za-z][A-Za-z0-9_-]*)\\5\\s*$",
+          "beginCaptures": {
+            "2": {
+              "name": "keyword.control.source.nytrix-shape"
+            },
+            "3": {
+              "name": "entity.name.section.nytrix-shape"
+            },
+            "4": {
+              "name": "punctuation.definition.heredoc.nytrix-shape"
+            },
+            "5": {
+              "name": "punctuation.definition.string.begin.nytrix-shape"
+            },
+            "6": {
+              "name": "entity.name.tag.heredoc.nytrix-shape"
+            }
+          },
+          "end": "^\\s*[A-Za-z][A-Za-z0-9_-]*\\s*$",
+          "endCaptures": {
+            "0": {
+              "name": "entity.name.tag.heredoc.nytrix-shape"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#string"
+            },
+            {
+              "include": "#number"
+            }
+          ]
+        }
+      ]
+    },
     "shape": {
       "patterns": [
         {
-          "name": "meta.shape.declaration.nynth-shape",
-          "match": "\\b(shape)\\s+([A-Za-z0-9_.-]+)",
+          "name": "meta.shape.declaration.nytrix-shape",
+          "match": "\\b(shape)\\s+([A-Za-z_][A-Za-z0-9_.-]*)",
           "captures": {
             "1": {
-              "name": "keyword.declaration.shape.nynth-shape"
+              "name": "keyword.declaration.shape.nytrix-shape"
             },
             "2": {
-              "name": "entity.name.type.shape.nynth-shape"
+              "name": "entity.name.type.shape.nytrix-shape"
             }
           }
         }
       ]
     },
-    "keyword": {
+    "field": {
       "patterns": [
         {
-          "name": "keyword.other.nynth-shape",
-          "match": "\\b(family|generator|features|weights|balanced|optimizer|memory|strings|state|fast_rank|template|expect|source)\\b"
+          "name": "meta.shape.field.nytrix-shape",
+          "match": "^\\s*(family|generator|features|weights|balanced|optimizer|memory|strings|state|fast_rank|template|expect|expect_message|expect_code|expect_regex|source)\\b",
+          "captures": {
+            "1": {
+              "name": "keyword.other.field.nytrix-shape"
+            }
+          }
+        }
+      ]
+    },
+    "constant": {
+      "patterns": [
+        {
+          "name": "constant.language.boolean.nytrix-shape",
+          "match": "\\b(?:true|false|null|nil)\\b"
+        },
+        {
+          "name": "constant.language.expectation.nytrix-shape",
+          "match": "\\b(?:compile_and_run|compile_fail|run_fail|parse_fail|ny-test-case|ny-compile-fail|ny-run-fail|perf-real|stress|error|negative|diagnostic|checksum|c-vs-ny|perf)\\b"
         }
       ]
     },
     "string": {
       "patterns": [
         {
-          "name": "string.quoted.double.nynth-shape",
+          "name": "string.quoted.double.nytrix-shape",
           "begin": "\"",
           "end": "\"",
           "patterns": [
             {
-              "name": "constant.character.escape.nynth-shape",
+              "name": "constant.character.escape.nytrix-shape",
+              "match": "\\\\(?:[0abfnrtv\\\\'\"n]|x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8}|.)"
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.single.nytrix-shape",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            {
+              "name": "constant.character.escape.nytrix-shape",
               "match": "\\\\."
             }
           ]
@@ -139,15 +234,23 @@
     "number": {
       "patterns": [
         {
-          "name": "constant.numeric.nynth-shape",
-          "match": "\\b-?\\d+(?:\\.\\d+)?\\b"
+          "name": "constant.numeric.hex.nytrix-shape",
+          "match": "\\b-?0x[0-9A-Fa-f_]+\\b"
+        },
+        {
+          "name": "constant.numeric.float.nytrix-shape",
+          "match": "\\b-?(?:\\d[\\d_]*\\.\\d[\\d_]*|\\d[\\d_]*(?:[eE][+-]?\\d[\\d_]*))\\b"
+        },
+        {
+          "name": "constant.numeric.integer.nytrix-shape",
+          "match": "\\b-?\\d[\\d_]*\\b"
         }
       ]
     },
     "identifier": {
       "patterns": [
         {
-          "name": "variable.other.symbol.nynth-shape",
+          "name": "variable.other.symbol.nytrix-shape",
           "match": "\\b[A-Za-z_][A-Za-z0-9_.-]*\\b"
         }
       ]
@@ -155,8 +258,12 @@
     "punctuation": {
       "patterns": [
         {
-          "name": "punctuation.section.braces.nynth-shape",
+          "name": "punctuation.section.braces.nytrix-shape",
           "match": "[{}\\[\\](),:]"
+        },
+        {
+          "name": "keyword.operator.assignment.nytrix-shape",
+          "match": "="
         }
       ]
     }

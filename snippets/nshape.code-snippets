@@ -1,0 +1,62 @@
+{
+  "Nytrix Shape": {
+    "prefix": "shape",
+    "body": [
+      "shape ${1:name} {",
+      "   family \"${2:runtime}\"",
+      "   generator \"${3:manual}\"",
+      "   features [\"${4:smoke}\"]",
+      "   expect ${5:compile_and_run}",
+      "",
+      "   source ny <<'NY'",
+      "${6:fn main() int {",
+      "   return 0",
+      "}}",
+      "NY",
+      "}"
+    ],
+    "description": "Compact .nshape test with embedded Nytrix source."
+  },
+  "Nytrix Shape C vs Ny": {
+    "prefix": "cvsny",
+    "body": [
+      "shape ${1:name} {",
+      "   family \"bench\"",
+      "   features [\"perf\", \"c-vs-ny\"]",
+      "   expect compile_and_run",
+      "",
+      "   source ny <<'NY'",
+      "${2:fn main() int {",
+      "   return 0",
+      "}}",
+      "NY",
+      "",
+      "   source c <<'C'",
+      "${3:#include <stdio.h>",
+      "int main(void) {",
+      "   puts(\"checksum=0\");",
+      "   return 0;",
+      "}}",
+      "C",
+      "}"
+    ],
+    "description": "Shape with paired Nytrix and C sources."
+  },
+  "Nytrix Shape Compile Fail": {
+    "prefix": "failshape",
+    "body": [
+      "shape ${1:name} {",
+      "   family \"errors\"",
+      "   expect compile_fail",
+      "   expect_message \"${2:error text}\"",
+      "",
+      "   source ny <<'NY'",
+      "${3:fn main() int {",
+      "   return \"bad\"",
+      "}}",
+      "NY",
+      "}"
+    ],
+    "description": "Negative .nshape expecting a compiler error."
+  }
+}

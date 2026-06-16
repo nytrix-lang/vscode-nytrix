@@ -3,7 +3,23 @@
 
 const fs = require("fs");
 const path = require("path");
-const npm = require("@vscode/vsce/out/npm");
+
+const CORE_PACKAGE_FILES = [
+  "package.json",
+  "README.md",
+  "LICENSE",
+  "logo.png",
+  "language-configuration.json",
+  "nshape-language-configuration.json",
+  "shader-language-configuration.json",
+  "nytrix.tmLanguage.json",
+  "nshape.tmLanguage.json",
+  "shader.tmLanguage.json",
+  "markdown-nytrix.tmLanguage.json",
+  "src/extension.js",
+  "snippets/nytrix.code-snippets",
+  "snippets/nshape.code-snippets"
+];
 
 function packagePathForDependency(lock, fromPath, name) {
   const local = fromPath ? `${fromPath}/node_modules/${name}` : `node_modules/${name}`;
@@ -34,20 +50,72 @@ function productionDependencyDirs(cwd) {
   return dirs;
 }
 
+function walkFiles(root, rel = "") {
+  const dir = path.join(root, rel);
+  if (!fs.existsSync(dir)) {
+    return [];
+  }
+  const out = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const child = rel ? `${rel}/${entry.name}` : entry.name;
+    if (entry.isDirectory()) {
+      out.push(...walkFiles(root, child));
+    } else if (entry.isFile()) {
+      out.push(child);
+    }
+  }
+  return out;
+}
+
+function fallbackPackageList(cwd) {
+  const files = new Set(CORE_PACKAGE_FILES.filter((file) => fs.existsSync(path.join(cwd, file))));
+  for (const depDir of productionDependencyDirs(cwd).slice(1)) {
+    if (!fs.existsSync(depDir)) {
+      continue;
+    }
+    const rel = path.relative(cwd, depDir).replace(/\\/g, "/");
+    for (const file of walkFiles(cwd, rel)) {
+      files.add(file);
+    }
+  }
+  return [...files].sort();
+}
+
+function loadVsce() {
+  try {
+    return {
+      npm: require("@vscode/vsce/out/npm"),
+      packageApi: require("@vscode/vsce/out/package")
+    };
+  } catch (err) {
+    return { error: err };
+  }
+}
+
 async function main() {
-  npm.getDependencies = async (cwd, dependencies) => (
-    dependencies === "none" ? [cwd] : productionDependencyDirs(cwd)
+  const cwd = process.cwd();
+  const vsce = loadVsce();
+  if (vsce.error) {
+    if (process.argv.includes("--list")) {
+      console.log(fallbackPackageList(cwd).join("\n"));
+      return;
+    }
+    throw new Error("@vscode/vsce is not installed. Run npm install, or use npm run package:ls for the dependency-free file list.");
+  }
+  vsce.npm.getDependencies = async (root, dependencies) => (
+    dependencies === "none" ? [root] : productionDependencyDirs(root)
   );
-  const vscePackage = require("@vscode/vsce/out/package");
   if (process.argv.includes("--list")) {
-    const files = await vscePackage.listFiles({ cwd: process.cwd(), useYarn: false });
+    const files = await vsce.packageApi.listFiles({ cwd, useYarn: false });
     console.log(files.join("\n"));
     return;
   }
-  await vscePackage.packageCommand({ cwd: process.cwd(), useYarn: false });
+  await vsce.packageApi.packageCommand({ cwd, useYarn: false });
 }
 
 module.exports = {
+  CORE_PACKAGE_FILES,
+  fallbackPackageList,
   packagePathForDependency,
   productionDependencyDirs
 };
