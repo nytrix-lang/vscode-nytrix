@@ -67,6 +67,131 @@
     "comment": {
       "patterns": [
         {
+          "name": "meta.embedded.block.python.nytrix",
+          "begin": "(;\\{)\\s*((?i)(?:python|py)\\b)?",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.comment.begin.nytrix" },
+            "2": { "name": "entity.name.function.embedded.language.nytrix" }
+          },
+          "end": "\\};",
+          "endCaptures": { "0": { "name": "punctuation.definition.comment.end.nytrix" } },
+          "patterns": [ { "include": "source.python" } ]
+        },
+        {
+          "name": "meta.embedded.block.javascript.nytrix",
+          "begin": "(;\\{)\\s*((?i)(?:javascript|js)\\b)",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.comment.begin.nytrix" },
+            "2": { "name": "entity.name.function.embedded.language.nytrix" }
+          },
+          "end": "\\};",
+          "endCaptures": { "0": { "name": "punctuation.definition.comment.end.nytrix" } },
+          "patterns": [ { "include": "source.js" } ]
+        },
+        {
+          "name": "meta.embedded.block.typescript.nytrix",
+          "begin": "(;\\{)\\s*((?i)(?:typescript|ts)\\b)",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.comment.begin.nytrix" },
+            "2": { "name": "entity.name.function.embedded.language.nytrix" }
+          },
+          "end": "\\};",
+          "endCaptures": { "0": { "name": "punctuation.definition.comment.end.nytrix" } },
+          "patterns": [ { "include": "source.ts" } ]
+        },
+        {
+          "name": "meta.embedded.block.c.nytrix",
+          "begin": "(;\\{)\\s*((?i)(?:c)\\b)",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.comment.begin.nytrix" },
+            "2": { "name": "entity.name.function.embedded.language.nytrix" }
+          },
+          "end": "\\};",
+          "endCaptures": { "0": { "name": "punctuation.definition.comment.end.nytrix" } },
+          "patterns": [ { "include": "source.c" } ]
+        },
+        {
+          "name": "meta.embedded.block.cpp.nytrix",
+          "begin": "(;\\{)\\s*((?i)(?:cpp|c\\+\\+)\\b)",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.comment.begin.nytrix" },
+            "2": { "name": "entity.name.function.embedded.language.nytrix" }
+          },
+          "end": "\\};",
+          "endCaptures": { "0": { "name": "punctuation.definition.comment.end.nytrix" } },
+          "patterns": [ { "include": "source.cpp" } ]
+        },
+        {
+          "name": "meta.embedded.block.rust.nytrix",
+          "begin": "(;\\{)\\s*((?i)(?:rust|rs)\\b)",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.comment.begin.nytrix" },
+            "2": { "name": "entity.name.function.embedded.language.nytrix" }
+          },
+          "end": "\\};",
+          "endCaptures": { "0": { "name": "punctuation.definition.comment.end.nytrix" } },
+          "patterns": [ { "include": "source.rust" } ]
+        },
+        {
+          "name": "meta.embedded.block.shell.nytrix",
+          "begin": "(;\\{)\\s*((?i)(?:shell|bash|sh)\\b)",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.comment.begin.nytrix" },
+            "2": { "name": "entity.name.function.embedded.language.nytrix" }
+          },
+          "end": "\\};",
+          "endCaptures": { "0": { "name": "punctuation.definition.comment.end.nytrix" } },
+          "patterns": [ { "include": "source.shell" } ]
+        },
+        {
+          "name": "meta.embedded.block.json.nytrix",
+          "begin": "(;\\{)\\s*((?i)(?:json|jsonc)\\b)",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.comment.begin.nytrix" },
+            "2": { "name": "entity.name.function.embedded.language.nytrix" }
+          },
+          "end": "\\};",
+          "endCaptures": { "0": { "name": "punctuation.definition.comment.end.nytrix" } },
+          "patterns": [ { "include": "source.json" } ]
+        },
+        {
+          "name": "meta.embedded.block.xml.nytrix",
+          "begin": "(;\\{)\\s*((?i)(?:xml|html)\\b)",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.comment.begin.nytrix" },
+            "2": { "name": "entity.name.function.embedded.language.nytrix" }
+          },
+          "end": "\\};",
+          "endCaptures": { "0": { "name": "punctuation.definition.comment.end.nytrix" } },
+          "patterns": [ { "include": "text.xml" } ]
+        },
+        {
+          "name": "meta.embedded.block.nytrix.nytrix",
+          "begin": "(;\\{)\\s*((?i)(?:ny|nytrix)\\b)?",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.comment.begin.nytrix" },
+            "2": { "name": "entity.name.function.embedded.language.nytrix" }
+          },
+          "end": "\\};",
+          "endCaptures": { "0": { "name": "punctuation.definition.comment.end.nytrix" } },
+          "patterns": [ { "include": "source.nytrix" } ]
+        },
+        {
+          "name": "comment.block.braces.nytrix",
+          "begin": ";\\{",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.begin.nytrix"
+            }
+          },
+          "end": "\\};",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.end.nytrix"
+            }
+          }
+        },
+        {
           "name": "comment.block.nytrix",
           "begin": ";\\*",
           "beginCaptures": {

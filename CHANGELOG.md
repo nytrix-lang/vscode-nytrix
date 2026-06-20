@@ -2,6 +2,14 @@
 
 All notable changes to the Nytrix VS Code extension.
 
+## 0.2.0 - 2026-06-20
+
+- Modularized extension source into `src/core`, `src/lsp`, `src/diagnostics`, `src/symbols`, `src/providers`, `src/debugger`, and `src/commands`.
+- Added `;{lang ... };` block comment syntax with embedded language syntax highlighting (Python, JS, TS, C, C++, Rust, shell, JSON, XML, Nytrix). Language tag is highlighted distinctly; unlabeled blocks default to Nytrix.
+- Changed default block comment from `;* ... *;` to `;{ ... };`.
+- Replaced flat right-click context menu with organized `Run / Debug`, `Tools`, and `Navigation` submenus.
+- Added `Nytrix: Toggle Type Inlay Hints` command and `nytrix.inlayHints.enabled` setting.
+
 ## 0.1.9 - 2026-06-16
 
 - Reworked the Marketplace changelog into cleaner, shorter release notes.

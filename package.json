@@ -2,7 +2,7 @@
   "name": "nytrix",
   "icon": "logo.png",
   "publisher": "x3ric",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "displayName": "Nytrix",
   "description": "Nytrix language support: syntax, real ny-lsp/ny-dap integration, run/test, and tooling.",
   "categories": [
@@ -45,11 +45,10 @@
   "main": "./src/extension.js",
   "scripts": {
     "check": "node --check src/extension.js && node --check scripts/package.js",
-    "test:js": "node test/js_smoke.js",
-    "validate": "npm run check && npm run test:js",
+    "validate": "npm run check",
     "prepackage": "npm run validate",
-    "package": "node scripts/package.js",
-    "package:ls": "node scripts/package.js --list"
+    "package": "node etc/scripts/package.js",
+    "package:ls": "node etc/scripts/package.js --list"
   },
   "activationEvents": [
     "onLanguage:nytrix",
@@ -73,7 +72,7 @@
         "extensions": [
           ".ny"
         ],
-        "configuration": "./language-configuration.json"
+        "configuration": "./etc/syntax/language-configuration.json"
       },
       {
         "id": "nshape",
@@ -85,14 +84,14 @@
         "extensions": [
           ".nshape"
         ],
-        "configuration": "./nshape-language-configuration.json"
+        "configuration": "./etc/syntax/nshape-language-configuration.json"
       }
     ],
     "grammars": [
       {
         "language": "nytrix",
         "scopeName": "source.nytrix",
-        "path": "./nytrix.tmLanguage.json",
+        "path": "./etc/syntax/nytrix.tmLanguage.json",
         "embeddedLanguages": {
           "meta.embedded.inline.asm.nytrix": "asm",
           "meta.embedded.inline.ini.nytrix": "ini",
@@ -100,27 +99,39 @@
           "meta.embedded.inline.regex.nytrix": "regexp",
           "meta.embedded.inline.sql.nytrix": "sql",
           "meta.embedded.inline.xml.nytrix": "xml",
-          "meta.embedded.inline.yaml.nytrix": "yaml"
+          "meta.embedded.inline.yaml.nytrix": "yaml",
+          "meta.embedded.block.python.nytrix": "python",
+          "meta.embedded.block.javascript.nytrix": "javascript",
+          "meta.embedded.block.typescript.nytrix": "typescript",
+          "meta.embedded.block.c.nytrix": "c",
+          "meta.embedded.block.cpp.nytrix": "cpp",
+          "meta.embedded.block.rust.nytrix": "rust",
+          "meta.embedded.block.shell.nytrix": "shellscript",
+          "meta.embedded.block.json.nytrix": "json",
+          "meta.embedded.block.xml.nytrix": "xml",
+          "meta.embedded.block.nytrix.nytrix": "nytrix"
         }
       },
       {
         "language": "nshape",
         "scopeName": "source.nytrix-shape",
-        "path": "./nshape.tmLanguage.json",
+        "path": "./etc/syntax/nshape.tmLanguage.json",
         "embeddedLanguages": {
           "meta.embedded.block.nytrix.nytrix-shape": "nytrix",
           "meta.embedded.block.c.nytrix-shape": "c",
+          "meta.embedded.block.python.nytrix-shape": "python",
           "source.nytrix": "nytrix",
-          "source.c": "c"
+          "source.c": "c",
+          "source.python": "python"
         }
       },
       {
         "scopeName": "source.nytrix-shader",
-        "path": "./shader.tmLanguage.json"
+        "path": "./etc/syntax/shader.tmLanguage.json"
       },
       {
         "scopeName": "markdown.nytrix.codeblock",
-        "path": "./markdown-nytrix.tmLanguage.json",
+        "path": "./etc/syntax/markdown-nytrix.tmLanguage.json",
         "injectTo": [
           "text.html.markdown"
         ],
@@ -133,14 +144,20 @@
     "snippets": [
       {
         "language": "nytrix",
-        "path": "./snippets/nytrix.code-snippets"
+        "path": "./etc/snippets/nytrix.code-snippets"
       },
       {
         "language": "nshape",
-        "path": "./snippets/nshape.code-snippets"
+        "path": "./etc/snippets/nshape.code-snippets"
       }
     ],
     "commands": [
+      {
+        "command": "nytrix.toggleInlayHints",
+        "title": "Nytrix: Toggle Type Inlay Hints",
+        "category": "Nytrix",
+        "icon": "$(lightbulb)"
+      },
       {
         "command": "nytrix.showActions",
         "title": "Nytrix: Show Actions",
@@ -418,6 +435,23 @@
         "icon": "$(arrow-right)"
       }
     ],
+    "submenus": [
+      {
+        "id": "nytrix.runDebug",
+        "label": "Run / Debug",
+        "icon": "$(play)"
+      },
+      {
+        "id": "nytrix.tools",
+        "label": "Tools",
+        "icon": "$(tools)"
+      },
+      {
+        "id": "nytrix.navigation",
+        "label": "Navigation",
+        "icon": "$(go-to-file)"
+      }
+    ],
     "menus": {
       "editor/title": [
         {
@@ -453,124 +487,145 @@
       ],
       "editor/context": [
         {
-          "command": "nytrix.runSelection",
-          "when": "resourceLangId == nytrix && editorHasSelection",
-          "group": "0_selection@1"
-        },
-        {
-          "command": "nytrix.sendSelectionToRepl",
-          "when": "resourceLangId == nytrix",
-          "group": "0_selection@2"
-        },
-        {
-          "command": "nytrix.goToDefinition",
-          "when": "resourceLangId == nytrix",
-          "group": "navigation@1"
-        },
-        {
-          "command": "nytrix.peekDefinition",
-          "when": "resourceLangId == nytrix",
-          "group": "navigation@2"
-        },
-        {
-          "command": "nytrix.findDefinitionByName",
-          "when": "resourceLangId == nytrix",
-          "group": "navigation@2.5"
-        },
-        {
-          "command": "nytrix.findReferences",
-          "when": "resourceLangId == nytrix",
-          "group": "navigation@3"
-        },
-        {
-          "command": "nytrix.renameSymbol",
-          "when": "resourceLangId == nytrix",
-          "group": "navigation@4"
-        },
-        {
-          "command": "nytrix.showHover",
-          "when": "resourceLangId == nytrix",
-          "group": "navigation@5"
-        },
-        {
-          "command": "nytrix.showSignatureHelp",
-          "when": "resourceLangId == nytrix",
-          "group": "navigation@6"
-        },
-        {
-          "command": "nytrix.searchDocsForSelection",
-          "when": "resourceLangId == nytrix",
-          "group": "navigation@6.5"
-        },
-        {
-          "command": "nytrix.gotoDocumentSymbol",
-          "when": "resourceLangId == nytrix",
-          "group": "navigation@7"
-        },
-        {
-          "command": "nytrix.gotoWorkspaceSymbol",
-          "when": "resourceLangId == nytrix",
-          "group": "navigation@8"
-        },
-        {
-          "command": "nytrix.checkFile",
-          "when": "resourceLangId == nytrix",
-          "group": "2_workspace@0"
-        },
-        {
-          "command": "nytrix.analyzeFile",
-          "when": "resourceLangId == nytrix",
-          "group": "2_workspace@1"
-        },
-        {
-          "command": "nytrix.expandFile",
-          "when": "resourceLangId == nytrix",
-          "group": "2_workspace@1.5"
-        },
-        {
-          "command": "nytrix.traceFile",
-          "when": "resourceLangId == nytrix",
-          "group": "2_workspace@2"
-        },
-        {
-          "command": "nytrix.profileFile",
-          "when": "resourceLangId == nytrix",
-          "group": "2_workspace@3"
-        },
-        {
-          "command": "nytrix.debugFile",
-          "when": "resourceLangId == nytrix",
-          "group": "2_workspace@4"
-        },
-        {
-          "command": "nytrix.formatFile",
-          "when": "resourceLangId == nytrix",
+          "submenu": "nytrix.runDebug",
+          "when": "resourceLangId == nytrix || resourceLangId == nshape",
           "group": "1_modification@1"
         },
         {
-          "command": "nytrix.optimizeFile",
+          "submenu": "nytrix.tools",
           "when": "resourceLangId == nytrix",
           "group": "1_modification@2"
         },
         {
-          "command": "nytrix.navigateBack",
+          "submenu": "nytrix.navigation",
           "when": "resourceLangId == nytrix",
-          "group": "navigation@9"
+          "group": "navigation@1"
+        }
+      ],
+      "nytrix.runDebug": [
+        {
+          "command": "nytrix.runSelection",
+          "when": "resourceLangId == nytrix && editorHasSelection",
+          "group": "1_run@1"
         },
         {
-          "command": "nytrix.navigateForward",
+          "command": "nytrix.sendSelectionToRepl",
           "when": "resourceLangId == nytrix",
-          "group": "navigation@10"
+          "group": "1_run@2"
+        },
+        {
+          "command": "nytrix.debugFile",
+          "when": "resourceLangId == nytrix",
+          "group": "2_debug@1"
         },
         {
           "command": "nytrix.runShape",
           "when": "resourceLangId == nshape",
-          "group": "2_workspace@0"
+          "group": "1_run@1"
         },
         {
           "command": "nytrix.runShapeSuite",
           "when": "resourceLangId == nshape",
-          "group": "2_workspace@1"
+          "group": "1_run@2"
+        }
+      ],
+      "nytrix.tools": [
+        {
+          "command": "nytrix.checkFile",
+          "when": "resourceLangId == nytrix",
+          "group": "1_check@1"
+        },
+        {
+          "command": "nytrix.analyzeFile",
+          "when": "resourceLangId == nytrix",
+          "group": "1_check@2"
+        },
+        {
+          "command": "nytrix.expandFile",
+          "when": "resourceLangId == nytrix",
+          "group": "2_modify@1"
+        },
+        {
+          "command": "nytrix.traceFile",
+          "when": "resourceLangId == nytrix",
+          "group": "2_modify@2"
+        },
+        {
+          "command": "nytrix.profileFile",
+          "when": "resourceLangId == nytrix",
+          "group": "2_modify@3"
+        },
+        {
+          "command": "nytrix.formatFile",
+          "when": "resourceLangId == nytrix",
+          "group": "3_format@1"
+        },
+        {
+          "command": "nytrix.optimizeFile",
+          "when": "resourceLangId == nytrix",
+          "group": "3_format@2"
+        }
+      ],
+      "nytrix.navigation": [
+        {
+          "command": "nytrix.goToDefinition",
+          "when": "resourceLangId == nytrix",
+          "group": "1_def@1"
+        },
+        {
+          "command": "nytrix.peekDefinition",
+          "when": "resourceLangId == nytrix",
+          "group": "1_def@2"
+        },
+        {
+          "command": "nytrix.findDefinitionByName",
+          "when": "resourceLangId == nytrix",
+          "group": "1_def@3"
+        },
+        {
+          "command": "nytrix.findReferences",
+          "when": "resourceLangId == nytrix",
+          "group": "2_ref@1"
+        },
+        {
+          "command": "nytrix.renameSymbol",
+          "when": "resourceLangId == nytrix",
+          "group": "2_ref@2"
+        },
+        {
+          "command": "nytrix.showHover",
+          "when": "resourceLangId == nytrix",
+          "group": "3_info@1"
+        },
+        {
+          "command": "nytrix.showSignatureHelp",
+          "when": "resourceLangId == nytrix",
+          "group": "3_info@2"
+        },
+        {
+          "command": "nytrix.searchDocsForSelection",
+          "when": "resourceLangId == nytrix",
+          "group": "3_info@3"
+        },
+        {
+          "command": "nytrix.gotoDocumentSymbol",
+          "when": "resourceLangId == nytrix",
+          "group": "4_goto@1"
+        },
+        {
+          "command": "nytrix.gotoWorkspaceSymbol",
+          "when": "resourceLangId == nytrix",
+          "group": "4_goto@2"
+        },
+        {
+          "command": "nytrix.navigateBack",
+          "when": "resourceLangId == nytrix",
+          "group": "5_nav@1"
+        },
+        {
+          "command": "nytrix.navigateForward",
+          "when": "resourceLangId == nytrix",
+          "group": "5_nav@2"
         }
       ],
       "commandPalette": [
@@ -743,6 +798,9 @@
         {
           "command": "nytrix.runShapeSuite",
           "when": "resourceLangId == nshape || resourceLangId == nytrix"
+        },
+        {
+          "command": "nytrix.toggleInlayHints"
         }
       ]
     },
@@ -1174,6 +1232,11 @@
           "type": "string",
           "default": "",
           "description": "Path to the ny compiler. Empty means auto-detect from workspace, ~/nytrix, environment, then PATH."
+        },
+        "nytrix.inlayHints.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show type inference inlay hints in the editor."
         },
         "nytrix.lsp.enabled": {
           "type": "boolean",

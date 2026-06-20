@@ -12,7 +12,6 @@ node_modules/**
 !node_modules/vscode-languageserver-protocol/**
 !node_modules/vscode-languageserver-types/**
 scripts/**
-test/**
 build/**
 cache/**
 dist/**
