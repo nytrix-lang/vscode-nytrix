@@ -9,8 +9,8 @@ coverage/
 .nytrix-cache/
 .vscode-test/
 .vscode-test-web/
-test/.artifacts/
-test/__pycache__/
-test/.sandbox/
+.artifacts/
+__pycache__/
+.sandbox/
 npm-debug.log*
 yarn-error.log*

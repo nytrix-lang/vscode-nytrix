@@ -13,6 +13,9 @@
       "include": "#source-c"
     },
     {
+      "include": "#source-python"
+    },
+    {
       "include": "#source-generic"
     },
     {
@@ -120,6 +123,42 @@
           "patterns": [
             {
               "include": "source.c"
+            }
+          ]
+        }
+      ]
+    },
+    "source-python": {
+      "patterns": [
+        {
+          "name": "meta.embedded.block.python.nytrix-shape",
+          "begin": "^(\\s*)(source)\\s+((?:py|python)[A-Za-z0-9_.+-]*)\\s+(<<)('?)\\b(PY|PYTHON)\\5\\s*$",
+          "beginCaptures": {
+            "2": {
+              "name": "keyword.control.source.nytrix-shape"
+            },
+            "3": {
+              "name": "entity.name.section.nytrix-shape"
+            },
+            "4": {
+              "name": "punctuation.definition.heredoc.nytrix-shape"
+            },
+            "5": {
+              "name": "punctuation.definition.string.begin.nytrix-shape"
+            },
+            "6": {
+              "name": "entity.name.tag.heredoc.nytrix-shape"
+            }
+          },
+          "end": "^\\s*(?:PY|PYTHON)\\s*$",
+          "endCaptures": {
+            "0": {
+              "name": "entity.name.tag.heredoc.nytrix-shape"
+            }
+          },
+          "patterns": [
+            {
+              "include": "source.python"
             }
           ]
         }

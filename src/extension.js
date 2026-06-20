@@ -116,7 +116,8 @@ function activate(context) {
     ["nytrix.restartLsp", () => restartLsp(context)],
     ["nytrix.installToolchain", () => installToolchain(context)],
     ["nytrix.showToolchain", showToolchain],
-    ["nytrix.pickProcess", pickProcess]
+    ["nytrix.pickProcess", pickProcess],
+    ["nytrix.toggleInlayHints", toggleInlayHints]
   ]);
   subscribe(context, vscode.window.onDidChangeActiveTextEditor(() => {
     updateStatus();
@@ -1566,6 +1567,12 @@ async function profileFile() {
   }
   await saveDocument(editor.document);
   runTerminal("Nytrix Profile", perf.path, ["profile", editor.document.uri.fsPath, "--"], workspaceCwd(editor.document));
+}
+
+async function toggleInlayHints() {
+  const current = cfg().get("inlayHints.enabled", false);
+  await cfg().update("inlayHints.enabled", !current, preferredConfigTarget());
+  vscode.window.showInformationMessage(`Nytrix: Type Inlay Hints are now ${!current ? "enabled" : "disabled"}`);
 }
 
 async function showActions() {

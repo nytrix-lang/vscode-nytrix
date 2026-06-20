@@ -10,16 +10,17 @@ const CORE_PACKAGE_FILES = [
   "CHANGELOG.md",
   "LICENSE",
   "logo.png",
-  "language-configuration.json",
-  "nshape-language-configuration.json",
-  "shader-language-configuration.json",
-  "nytrix.tmLanguage.json",
-  "nshape.tmLanguage.json",
-  "shader.tmLanguage.json",
-  "markdown-nytrix.tmLanguage.json",
-  "src/extension.js",
-  "snippets/nytrix.code-snippets",
-  "snippets/nshape.code-snippets"
+  "syntax/language-configuration.json",
+  "syntax/nshape-language-configuration.json",
+  "syntax/shader-language-configuration.json",
+  "syntax/nytrix.tmLanguage.json",
+  "syntax/nshape.tmLanguage.json",
+  "syntax/shader.tmLanguage.json",
+  "syntax/markdown-nytrix.tmLanguage.json",
+  "extension.js",
+  "nytrixDebugAdapter.js",
+  "syntax/nytrix.code-snippets",
+  "syntax/nshape.code-snippets"
 ];
 
 function errorMessage(err) {

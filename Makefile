@@ -12,22 +12,40 @@ PACKAGE_STAGE ?= /tmp/nytrix-vscode-package
 
 SOURCES := \
 	src/extension.js \
-	snippets/nytrix.code-snippets \
-	.vscodeignore package.json package-lock.json language-configuration.json nshape-language-configuration.json shader-language-configuration.json \
-	nytrix.tmLanguage.json nshape.tmLanguage.json shader.tmLanguage.json markdown-nytrix.tmLanguage.json \
+	etc/snippets/nytrix.code-snippets \
+	etc/snippets/nshape.code-snippets \
+	etc/syntax/language-configuration.json \
+	etc/syntax/nshape-language-configuration.json \
+	etc/syntax/shader-language-configuration.json \
+	etc/syntax/nytrix.tmLanguage.json \
+	etc/syntax/nshape.tmLanguage.json \
+	etc/syntax/shader.tmLanguage.json \
+	etc/syntax/markdown-nytrix.tmLanguage.json \
+	.vscodeignore package.json package-lock.json \
 	README.md LICENSE logo.png
 
-PACKAGE_FILES := src snippets .vscodeignore package.json package-lock.json language-configuration.json nshape-language-configuration.json shader-language-configuration.json \
-	nytrix.tmLanguage.json nshape.tmLanguage.json shader.tmLanguage.json markdown-nytrix.tmLanguage.json \
-	README.md LICENSE logo.png
+PACKAGE_FILES := src etc logo.png .vscodeignore package.json package-lock.json \
+	README.md LICENSE
 
 all: $(VSIX)
+
+help:
+	@echo "Nytrix VS Code Extension Build System"
+	@echo "-------------------------------------"
+	@echo "make test    - Run all tests (smoke, UI, protocol) via test.py"
+	@echo "make check   - Run syntax and basic checks"
+	@echo "make package - Build the .vsix package"
 
 deps:
 	$(NPM) install
 
 check:
 	$(NPM) run check
+
+test:
+	python3 etc/scripts/tests/test.py smoke
+
+package: $(VSIX)
 
 $(VSIX): $(SOURCES)
 	rm -rf $(PACKAGE_STAGE) $(VSCE_PREFIX)
@@ -42,4 +60,4 @@ clean:
 	rm -f -- *.vsix
 	rm -rf $(PACKAGE_STAGE) $(VSCE_PREFIX)
 
-.PHONY: all clean deps check
+.PHONY: all clean deps check help test package
