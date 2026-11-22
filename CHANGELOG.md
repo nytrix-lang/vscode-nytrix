@@ -21,10 +21,15 @@ All notable changes to the Nytrix VS Code extension.
 - Resolve `ny-lsp` and `ny-dap` independently, preferring `nytrix.toolchain`,
   `NYTRIX_HOME`, then the workspace `build/release` over `PATH`, so a stale
   installed copy never shadows a fresh build.
-- Added `Nytrix: Debug File`, an "Open Settings" prompt when a tool is missing,
-  and `~` expansion in `nytrix.debugger`.
-- Shorter command titles (`Show Commands`, `Restart Server`) and a command
-  picker without raw ids.
+- Run and Debug buttons in the editor toolbar, a `Nytrix` submenu in the
+  editor context menu (check, trace, expand, AST, LLVM IR, stats, analyze,
+  optimize, profile, REPL, tests, docs), Run/Debug in the Explorer menu, and
+  `Ctrl+Alt+R` to run. All generated from `language/languages.json`.
+- Short command titles (`Run File`, `Debug File`, `Show Commands`) and a
+  command picker without raw ids.
+- Debugging asks for a native debugger up front: a clear error when neither
+  gdb 14+ nor lldb-dap is installed, an "Open Settings" prompt when a tool is
+  missing, and `~` expansion in `nytrix.debugger`.
 - Extension icon rendered from the project's `logo.svg`.
 - Known gap: the native backend emits no local-variable DWARF yet, so the
   Variables view shows registers only.

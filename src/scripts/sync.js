@@ -23,10 +23,48 @@ const fail = (message) => {
   process.exit(1);
 };
 
+/* Commands the extension itself owns; the manifest adds one wrapper per server command. */
+const BASE_COMMANDS = [
+  { command: "nytrix.commands", title: "Show Commands", category: "Nytrix", icon: "$(list-selection)" },
+  { command: "nytrix.restartServer", title: "Restart Server", category: "Nytrix", icon: "$(debug-restart)" },
+  { command: "nytrix.showOutput", title: "Show Output", category: "Nytrix", icon: "$(output)" },
+  { command: "nytrix.showToolchain", title: "Show Toolchain", category: "Nytrix", icon: "$(tools)" }
+];
+
+const langWhen = (langs, key = "editorLangId") => "(" + langs.map((l) => `${key} == ${l}`).join(" || ") + ")";
+const extWhen = (langs) => "(" + langs.map((l) => `resourceExtname == .${l === "nytrix" ? "ny" : l}`).join(" || ") + ")";
+
+/* Commands, menus and keybindings generated from manifest.commands. */
+function ui(manifest) {
+  const list = manifest.commands || [];
+  const id = (c) => `nytrix.ui.${c.id}`;
+  const commands = [...BASE_COMMANDS, ...list.map((c) => ({ command: id(c), title: c.title, category: "Nytrix", icon: `$(${c.icon})` }))];
+  const menus = { commandPalette: [], "editor/title/run": [], "editor/context": [], "explorer/context": [] };
+  list.forEach((c, i) => {
+    const when = langWhen(c.languages);
+    menus.commandPalette.push({ command: id(c), when: c.group === "workspace" ? "workspaceFolderCount > 0 || " + when : when });
+    if (c.group === "run") {
+      menus["editor/title/run"].push({ command: id(c), when: `${when} && !inDebugMode`, group: `1_run@${i}` });
+      menus["explorer/context"].push({ command: id(c), when: `!explorerResourceIsFolder && ${extWhen(c.languages)}`, group: `nytrix@${i}` });
+    } else if (c.group === "tools") {
+      menus["nytrix.tools"] = menus["nytrix.tools"] || [];
+      menus["nytrix.tools"].push({ command: id(c), when, group: `1_tools@${i}` });
+    } else {
+      menus["nytrix.tools"] = menus["nytrix.tools"] || [];
+      menus["nytrix.tools"].push({ command: id(c), when, group: `2_workspace@${i}` });
+    }
+  });
+  menus["editor/context"].push({ submenu: "nytrix.tools", when: langWhen(["nytrix", "nshape"]), group: "navigation@9" });
+  const keybindings = [{ command: "nytrix.commands", key: "ctrl+alt+n", mac: "cmd+alt+n" }];
+  for (const c of list) if (c.keybinding) keybindings.push({ command: id(c), key: c.keybinding, mac: c.mac, when: langWhen(c.languages) });
+  return { commands, menus, submenus: [{ id: "nytrix.tools", label: "Nytrix" }], keybindings };
+}
+
 /* Contributes sections that mirror the manifest; everything else stays hand-written. */
 function sections(manifest) {
   const dbg = manifest.debugger || {};
   return {
+    ...ui(manifest),
     languages: (manifest.languages || []).map((l) => ({ ...l, configuration: l.configuration && rel(l.configuration) })),
     grammars: (manifest.grammars || []).map((g) => ({ ...g, path: rel(g.path) })),
     snippets: (manifest.snippets || []).map((s) => ({ ...s, path: rel(s.path) })),

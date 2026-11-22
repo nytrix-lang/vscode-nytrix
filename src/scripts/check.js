@@ -49,6 +49,7 @@ function main() {
 
   /* Commands and settings: contributed is exactly what the extension uses. */
   const registered = new Set([...extension.matchAll(/registerCommand\("([^"]+)"/g)].map((m) => m[1]));
+  for (const c of manifest.commands || []) registered.add(`nytrix.ui.${c.id}`);
   const commands = new Set((contributes.commands || []).map((c) => c.command));
   for (const command of registered) expect(commands.has(command), `${command}: registered but not contributed`);
   for (const command of commands) expect(registered.has(command), `${command}: contributed but not registered`);

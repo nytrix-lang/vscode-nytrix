@@ -15,7 +15,8 @@ plus the toolchain's own `ny-lsp` and `ny-dap`.
 - From `ny-lsp`: diagnostics, hover, definitions, references, symbols,
   completions, rename, semantic tokens, inlay hints, code lenses and
   formatting.
-- `Nytrix: Debug File` and F5 launch configurations.
+- Run and Debug buttons in the editor toolbar, a `Nytrix` right-click submenu
+  for the other tools, and F5 launch configurations.
 - One command palette entry, `Nytrix: Show Commands`, filled by `ny-lsp` so the
   extension never carries its own command list.
 - Debugging through the normal VS Code UI, proxied by `ny-dap`.

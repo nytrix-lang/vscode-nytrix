@@ -60,27 +60,116 @@
       {
         "command": "nytrix.commands",
         "title": "Show Commands",
-        "category": "Nytrix"
-      },
-      {
-        "command": "nytrix.debugFile",
-        "title": "Debug File",
-        "category": "Nytrix"
+        "category": "Nytrix",
+        "icon": "$(list-selection)"
       },
       {
         "command": "nytrix.restartServer",
         "title": "Restart Server",
-        "category": "Nytrix"
+        "category": "Nytrix",
+        "icon": "$(debug-restart)"
       },
       {
         "command": "nytrix.showOutput",
         "title": "Show Output",
-        "category": "Nytrix"
+        "category": "Nytrix",
+        "icon": "$(output)"
       },
       {
         "command": "nytrix.showToolchain",
         "title": "Show Toolchain",
-        "category": "Nytrix"
+        "category": "Nytrix",
+        "icon": "$(tools)"
+      },
+      {
+        "command": "nytrix.ui.run",
+        "title": "Run File",
+        "category": "Nytrix",
+        "icon": "$(play)"
+      },
+      {
+        "command": "nytrix.ui.shape",
+        "title": "Run Shape",
+        "category": "Nytrix",
+        "icon": "$(play)"
+      },
+      {
+        "command": "nytrix.ui.debug",
+        "title": "Debug File",
+        "category": "Nytrix",
+        "icon": "$(debug-alt)"
+      },
+      {
+        "command": "nytrix.ui.check",
+        "title": "Check File",
+        "category": "Nytrix",
+        "icon": "$(check)"
+      },
+      {
+        "command": "nytrix.ui.trace",
+        "title": "Trace File",
+        "category": "Nytrix",
+        "icon": "$(list-flat)"
+      },
+      {
+        "command": "nytrix.ui.expand",
+        "title": "Expand Macros",
+        "category": "Nytrix",
+        "icon": "$(symbol-misc)"
+      },
+      {
+        "command": "nytrix.ui.ast",
+        "title": "Show AST",
+        "category": "Nytrix",
+        "icon": "$(type-hierarchy)"
+      },
+      {
+        "command": "nytrix.ui.llvm",
+        "title": "Show LLVM IR",
+        "category": "Nytrix",
+        "icon": "$(file-code)"
+      },
+      {
+        "command": "nytrix.ui.stats",
+        "title": "Compile Stats",
+        "category": "Nytrix",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "nytrix.ui.analyze",
+        "title": "Analyze File",
+        "category": "Nytrix",
+        "icon": "$(search)"
+      },
+      {
+        "command": "nytrix.ui.optimize",
+        "title": "Optimize File",
+        "category": "Nytrix",
+        "icon": "$(zap)"
+      },
+      {
+        "command": "nytrix.ui.profile",
+        "title": "Profile File",
+        "category": "Nytrix",
+        "icon": "$(dashboard)"
+      },
+      {
+        "command": "nytrix.ui.repl",
+        "title": "Start REPL",
+        "category": "Nytrix",
+        "icon": "$(terminal)"
+      },
+      {
+        "command": "nytrix.ui.tests",
+        "title": "Run Tests",
+        "category": "Nytrix",
+        "icon": "$(beaker)"
+      },
+      {
+        "command": "nytrix.ui.docs",
+        "title": "Search Docs",
+        "category": "Nytrix",
+        "icon": "$(book)"
       }
     ],
     "keybindings": [
@@ -88,6 +177,18 @@
         "command": "nytrix.commands",
         "key": "ctrl+alt+n",
         "mac": "cmd+alt+n"
+      },
+      {
+        "command": "nytrix.ui.run",
+        "key": "ctrl+alt+r",
+        "mac": "cmd+alt+r",
+        "when": "(editorLangId == nytrix)"
+      },
+      {
+        "command": "nytrix.ui.shape",
+        "key": "ctrl+alt+r",
+        "mac": "cmd+alt+r",
+        "when": "(editorLangId == nshape)"
       }
     ],
     "configuration": {
@@ -293,6 +394,179 @@
             "cwd": "${fileDirname}"
           }
         ]
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "nytrix.ui.run",
+          "when": "(editorLangId == nytrix)"
+        },
+        {
+          "command": "nytrix.ui.shape",
+          "when": "(editorLangId == nshape)"
+        },
+        {
+          "command": "nytrix.ui.debug",
+          "when": "(editorLangId == nytrix || editorLangId == nshape)"
+        },
+        {
+          "command": "nytrix.ui.check",
+          "when": "(editorLangId == nytrix)"
+        },
+        {
+          "command": "nytrix.ui.trace",
+          "when": "(editorLangId == nytrix)"
+        },
+        {
+          "command": "nytrix.ui.expand",
+          "when": "(editorLangId == nytrix)"
+        },
+        {
+          "command": "nytrix.ui.ast",
+          "when": "(editorLangId == nytrix)"
+        },
+        {
+          "command": "nytrix.ui.llvm",
+          "when": "(editorLangId == nytrix)"
+        },
+        {
+          "command": "nytrix.ui.stats",
+          "when": "(editorLangId == nytrix)"
+        },
+        {
+          "command": "nytrix.ui.analyze",
+          "when": "(editorLangId == nytrix)"
+        },
+        {
+          "command": "nytrix.ui.optimize",
+          "when": "(editorLangId == nytrix)"
+        },
+        {
+          "command": "nytrix.ui.profile",
+          "when": "(editorLangId == nytrix)"
+        },
+        {
+          "command": "nytrix.ui.repl",
+          "when": "(editorLangId == nytrix || editorLangId == nshape)"
+        },
+        {
+          "command": "nytrix.ui.tests",
+          "when": "workspaceFolderCount > 0 || (editorLangId == nytrix || editorLangId == nshape)"
+        },
+        {
+          "command": "nytrix.ui.docs",
+          "when": "workspaceFolderCount > 0 || (editorLangId == nytrix || editorLangId == nshape)"
+        }
+      ],
+      "editor/title/run": [
+        {
+          "command": "nytrix.ui.run",
+          "when": "(editorLangId == nytrix) && !inDebugMode",
+          "group": "1_run@0"
+        },
+        {
+          "command": "nytrix.ui.shape",
+          "when": "(editorLangId == nshape) && !inDebugMode",
+          "group": "1_run@1"
+        },
+        {
+          "command": "nytrix.ui.debug",
+          "when": "(editorLangId == nytrix || editorLangId == nshape) && !inDebugMode",
+          "group": "1_run@2"
+        }
+      ],
+      "editor/context": [
+        {
+          "submenu": "nytrix.tools",
+          "when": "(editorLangId == nytrix || editorLangId == nshape)",
+          "group": "navigation@9"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "nytrix.ui.run",
+          "when": "!explorerResourceIsFolder && (resourceExtname == .ny)",
+          "group": "nytrix@0"
+        },
+        {
+          "command": "nytrix.ui.shape",
+          "when": "!explorerResourceIsFolder && (resourceExtname == .nshape)",
+          "group": "nytrix@1"
+        },
+        {
+          "command": "nytrix.ui.debug",
+          "when": "!explorerResourceIsFolder && (resourceExtname == .ny || resourceExtname == .nshape)",
+          "group": "nytrix@2"
+        }
+      ],
+      "nytrix.tools": [
+        {
+          "command": "nytrix.ui.check",
+          "when": "(editorLangId == nytrix)",
+          "group": "1_tools@3"
+        },
+        {
+          "command": "nytrix.ui.trace",
+          "when": "(editorLangId == nytrix)",
+          "group": "1_tools@4"
+        },
+        {
+          "command": "nytrix.ui.expand",
+          "when": "(editorLangId == nytrix)",
+          "group": "1_tools@5"
+        },
+        {
+          "command": "nytrix.ui.ast",
+          "when": "(editorLangId == nytrix)",
+          "group": "1_tools@6"
+        },
+        {
+          "command": "nytrix.ui.llvm",
+          "when": "(editorLangId == nytrix)",
+          "group": "1_tools@7"
+        },
+        {
+          "command": "nytrix.ui.stats",
+          "when": "(editorLangId == nytrix)",
+          "group": "1_tools@8"
+        },
+        {
+          "command": "nytrix.ui.analyze",
+          "when": "(editorLangId == nytrix)",
+          "group": "1_tools@9"
+        },
+        {
+          "command": "nytrix.ui.optimize",
+          "when": "(editorLangId == nytrix)",
+          "group": "1_tools@10"
+        },
+        {
+          "command": "nytrix.ui.profile",
+          "when": "(editorLangId == nytrix)",
+          "group": "1_tools@11"
+        },
+        {
+          "command": "nytrix.ui.repl",
+          "when": "(editorLangId == nytrix || editorLangId == nshape)",
+          "group": "1_tools@12"
+        },
+        {
+          "command": "nytrix.ui.tests",
+          "when": "(editorLangId == nytrix || editorLangId == nshape)",
+          "group": "2_workspace@13"
+        },
+        {
+          "command": "nytrix.ui.docs",
+          "when": "(editorLangId == nytrix || editorLangId == nshape)",
+          "group": "2_workspace@14"
+        }
+      ]
+    },
+    "submenus": [
+      {
+        "id": "nytrix.tools",
+        "label": "Nytrix"
       }
     ]
   }

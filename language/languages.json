@@ -123,5 +123,166 @@
       "nytrix",
       "nshape"
     ]
-  }
+  },
+  "commands": [
+    {
+      "id": "run",
+      "server": "nytrix.run",
+      "title": "Run File",
+      "icon": "play",
+      "languages": [
+        "nytrix"
+      ],
+      "group": "run",
+      "keybinding": "ctrl+alt+r",
+      "mac": "cmd+alt+r"
+    },
+    {
+      "id": "shape",
+      "server": "nytrix.shape",
+      "title": "Run Shape",
+      "icon": "play",
+      "languages": [
+        "nshape"
+      ],
+      "group": "run",
+      "keybinding": "ctrl+alt+r",
+      "mac": "cmd+alt+r"
+    },
+    {
+      "id": "debug",
+      "server": "nytrix.debug",
+      "title": "Debug File",
+      "icon": "debug-alt",
+      "languages": [
+        "nytrix",
+        "nshape"
+      ],
+      "group": "run"
+    },
+    {
+      "id": "check",
+      "server": "nytrix.check",
+      "title": "Check File",
+      "icon": "check",
+      "languages": [
+        "nytrix"
+      ],
+      "group": "tools"
+    },
+    {
+      "id": "trace",
+      "server": "nytrix.trace",
+      "title": "Trace File",
+      "icon": "list-flat",
+      "languages": [
+        "nytrix"
+      ],
+      "group": "tools"
+    },
+    {
+      "id": "expand",
+      "server": "nytrix.expand",
+      "title": "Expand Macros",
+      "icon": "symbol-misc",
+      "languages": [
+        "nytrix"
+      ],
+      "group": "tools"
+    },
+    {
+      "id": "ast",
+      "server": "nytrix.dumpAst",
+      "title": "Show AST",
+      "icon": "type-hierarchy",
+      "languages": [
+        "nytrix"
+      ],
+      "group": "tools"
+    },
+    {
+      "id": "llvm",
+      "server": "nytrix.dumpLlvm",
+      "title": "Show LLVM IR",
+      "icon": "file-code",
+      "languages": [
+        "nytrix"
+      ],
+      "group": "tools"
+    },
+    {
+      "id": "stats",
+      "server": "nytrix.dumpStats",
+      "title": "Compile Stats",
+      "icon": "graph",
+      "languages": [
+        "nytrix"
+      ],
+      "group": "tools"
+    },
+    {
+      "id": "analyze",
+      "server": "nytrix.analyze",
+      "title": "Analyze File",
+      "icon": "search",
+      "languages": [
+        "nytrix"
+      ],
+      "group": "tools"
+    },
+    {
+      "id": "optimize",
+      "server": "nytrix.optimize",
+      "title": "Optimize File",
+      "icon": "zap",
+      "languages": [
+        "nytrix"
+      ],
+      "group": "tools"
+    },
+    {
+      "id": "profile",
+      "server": "nytrix.profile",
+      "title": "Profile File",
+      "icon": "dashboard",
+      "languages": [
+        "nytrix"
+      ],
+      "group": "tools"
+    },
+    {
+      "id": "repl",
+      "server": "nytrix.repl",
+      "title": "Start REPL",
+      "icon": "terminal",
+      "languages": [
+        "nytrix",
+        "nshape"
+      ],
+      "group": "tools"
+    },
+    {
+      "id": "tests",
+      "server": "nytrix.tests",
+      "title": "Run Tests",
+      "icon": "beaker",
+      "languages": [
+        "nytrix",
+        "nshape"
+      ],
+      "group": "workspace"
+    },
+    {
+      "id": "docs",
+      "server": "nytrix.docs",
+      "title": "Search Docs",
+      "icon": "book",
+      "languages": [
+        "nytrix",
+        "nshape"
+      ],
+      "group": "workspace",
+      "input": "Search stdlib modules, symbols and docs"
+    }
+  ]
 }

@@ -19,6 +19,15 @@ let status;
 
 const cfg = () => vscode.workspace.getConfiguration("nytrix");
 
+let manifestCache;
+function manifest(context) {
+  if (!manifestCache) {
+    try { manifestCache = JSON.parse(fs.readFileSync(path.join(context.extensionPath, "language", "languages.json"), "utf8")); }
+    catch { manifestCache = {}; }
+  }
+  return manifestCache;
+}
+
 function expandHome(p) {
   return p && p.startsWith("~") ? path.join(require("os").homedir(), p.slice(1)) : p;
 }
@@ -59,15 +68,21 @@ async function missingTool(name) {
   if (pick) vscode.commands.executeCommand("workbench.action.openSettings", "nytrix.toolchain");
 }
 
+function onPath(name) {
+  return (process.env.PATH || "").split(path.delimiter).some((dir) => dir && isFile(path.join(dir, name + EXE)));
+}
+
 function toolEnv() {
   return { ...process.env, ...cfg().get("server.environment", {}) };
 }
 
 /* Default arguments for a server command: the active file and cursor line. */
-function currentArgs(input) {
+function currentArgs(input, resource) {
   const editor = vscode.window.activeTextEditor;
   const args = {};
-  if (editor && editor.document.uri.scheme === "file") {
+  if (resource instanceof vscode.Uri && resource.scheme === "file") {
+    args.uri = resource.toString();
+  } else if (editor && editor.document.uri.scheme === "file") {
     args.uri = editor.document.uri.toString();
     args.line = editor.selection.active.line;
   }
@@ -127,9 +142,7 @@ async function startServer(context) {
     await missingTool("ny-lsp");
     return;
   }
-  const manifestPath = path.join(context.extensionPath, "language", "languages.json");
-  const manifest = isFile(manifestPath) ? JSON.parse(fs.readFileSync(manifestPath, "utf8")) : {};
-  const selector = (manifest.server && manifest.server.documentSelector) || [{ language: "nytrix" }];
+  const selector = (manifest(context).server && manifest(context).server.documentSelector) || [{ language: "nytrix" }];
   const server = { command: lsp, args: cfg().get("server.arguments", []), options: { env: toolEnv() } };
   client = new LanguageClient("nytrix", "Nytrix", server, {
     documentSelector: selector.map((s) => ({ scheme: "file", ...s })),
@@ -163,6 +176,11 @@ function registerDebugger(context) {
         throw new Error("ny-dap not found: set nytrix.toolchain");
       }
       const debuggerPath = cfg().get("debugger", "");
+      if (!debuggerPath && !onPath("gdb") && !onPath("lldb-dap")) {
+        vscode.window.showErrorMessage("Nytrix debugging needs gdb 14+ or lldb-dap on PATH, or set nytrix.debugger.", "Open Settings")
+          .then((pick) => pick && vscode.commands.executeCommand("workbench.action.openSettings", "nytrix.debugger"));
+        throw new Error("no native debugger found (gdb 14+ or lldb-dap)");
+      }
       const args = debuggerPath ? ["--debugger", expandHome(debuggerPath)] : [];
       return new vscode.DebugAdapterExecutable(dap, args, { env: toolEnv() });
     }
@@ -180,16 +198,38 @@ function registerDebugger(context) {
   }));
 }
 
-/* Debugs the active file with the same configuration F5 would offer. */
-async function debugFile() {
-  const editor = vscode.window.activeTextEditor;
-  if (!editor) return vscode.window.showWarningMessage("Open a Nytrix file to debug.");
-  await editor.document.save();
-  const folder = vscode.workspace.getWorkspaceFolder(editor.document.uri);
-  await vscode.debug.startDebugging(folder, {
-    type: "nytrix", request: "launch", name: "Nytrix: Debug File",
-    program: editor.document.uri.fsPath, cwd: path.dirname(editor.document.uri.fsPath)
+/* Runs a server command and performs the action it returns. */
+async function runServerCommand(def, resource) {
+  if (!client) return vscode.window.showWarningMessage("The Nytrix language server is not running.");
+  let input;
+  if (def.input) {
+    const editor = vscode.window.activeTextEditor;
+    const word = editor && editor.document.getText(editor.document.getWordRangeAtPosition(editor.selection.active) || editor.selection);
+    input = await vscode.window.showInputBox({ prompt: def.input, value: word || "" });
+    if (input === undefined) return;
+  }
+  const action = await client.sendRequest(ExecuteCommandRequest.type, { command: def.server, arguments: [currentArgs(input, resource)] });
+  await perform(action);
+}
+
+/* Debugs a file (the active editor by default) with the F5 configuration. */
+async function debugFile(resource) {
+  const uri = resource instanceof vscode.Uri ? resource : (vscode.window.activeTextEditor || {}).document?.uri;
+  if (!uri) return vscode.window.showWarningMessage("Open a Nytrix file to debug.");
+  const doc = vscode.workspace.textDocuments.find((d) => d.uri.toString() === uri.toString());
+  if (doc && doc.isDirty) await doc.save();
+  await vscode.debug.startDebugging(vscode.workspace.getWorkspaceFolder(uri), {
+    type: "nytrix", request: "launch", name: `Nytrix: ${path.basename(uri.fsPath)}`,
+    program: uri.fsPath, cwd: path.dirname(uri.fsPath)
   });
+}
+
+/* One wrapper per manifest command: toolbar buttons, menus and the palette. */
+function registerUiCommands(context) {
+  for (const def of manifest(context).commands || []) {
+    const handler = def.id === "debug" ? debugFile : (resource) => runServerCommand(def, resource);
+    context.subscriptions.push(vscode.commands.registerCommand(`nytrix.ui.${def.id}`, handler));
+  }
 }
 
 async function activate(context) {
@@ -201,7 +241,6 @@ async function activate(context) {
   context.subscriptions.push(output, status,
     vscode.commands.registerCommand("nytrix.commands", pickCommand),
     vscode.commands.registerCommand("nytrix.restartServer", () => restartServer(context)),
-    vscode.commands.registerCommand("nytrix.debugFile", debugFile),
     vscode.commands.registerCommand("nytrix.showOutput", () => output.show(true)),
     vscode.commands.registerCommand("nytrix.showToolchain", () =>
       vscode.window.showInformationMessage(
@@ -209,6 +248,7 @@ async function activate(context) {
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration("nytrix.toolchain") || e.affectsConfiguration("nytrix.server")) restartServer(context);
     }));
+  registerUiCommands(context);
   registerDebugger(context);
   if (vscode.workspace.isTrusted) await startServer(context);
   else context.subscriptions.push(vscode.workspace.onDidGrantWorkspaceTrust(() => startServer(context)));
