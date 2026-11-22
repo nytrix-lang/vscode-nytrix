@@ -37,6 +37,8 @@ All notable changes to the Nytrix VS Code extension.
   gdb 14+ nor lldb-dap is installed, an "Open Settings" prompt when a tool is
   missing, and `~` expansion in `nytrix.debugger`.
 - Extension icon rendered from the project's `logo.svg`.
+- Needs a toolchain whose entry function keeps its DWARF line rows, so
+  breakpoints in a script's top-level code bind and stop.
 - Known gap: the native backend emits no local-variable DWARF yet, so the
   Variables view shows registers only.
 
