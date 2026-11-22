@@ -27,21 +27,36 @@ function isFile(p) {
   try { return fs.statSync(p).isFile(); } catch { return false; }
 }
 
-/* Directory holding ny-lsp/ny-dap: setting, NYTRIX_HOME, PATH, workspace build. */
-function toolchainDir() {
-  const candidates = [];
+/* Directories searched for the toolchain, most specific first. A build in the
+ * workspace or NYTRIX_HOME wins over a possibly stale copy on PATH. */
+function toolchainDirs() {
+  const dirs = [];
   const setting = expandHome(cfg().get("toolchain", ""));
-  if (setting) candidates.push(isFile(setting) ? path.dirname(setting) : setting);
+  if (setting) dirs.push(isFile(setting) ? path.dirname(setting) : setting);
   for (const env of ["NYTRIX_HOME", "NYTRIX_ROOT"]) {
-    if (process.env[env]) {
-      candidates.push(path.join(process.env[env], "bin"), path.join(process.env[env], "build", "release"), process.env[env]);
-    }
+    const home = process.env[env];
+    if (home) dirs.push(path.join(home, "bin"), path.join(home, "build", "release"), home);
   }
-  for (const dir of (process.env.PATH || "").split(path.delimiter)) if (dir) candidates.push(dir);
   for (const folder of vscode.workspace.workspaceFolders || []) {
-    candidates.push(path.join(folder.uri.fsPath, "build", "release"));
+    dirs.push(path.join(folder.uri.fsPath, "build", "release"));
   }
-  return candidates.find((dir) => isFile(path.join(dir, "ny-lsp" + EXE))) || null;
+  for (const dir of (process.env.PATH || "").split(path.delimiter)) if (dir) dirs.push(dir);
+  return dirs;
+}
+
+/* Full path of a toolchain executable (ny-lsp, ny-dap), or null. */
+function findTool(name) {
+  for (const dir of toolchainDirs()) {
+    const candidate = path.join(dir, name + EXE);
+    if (isFile(candidate)) return candidate;
+  }
+  return null;
+}
+
+async function missingTool(name) {
+  output.appendLine(`${name} not found. Set \`nytrix.toolchain\` to the directory containing ny-lsp and ny-dap.`);
+  const pick = await vscode.window.showWarningMessage(`Nytrix: ${name} not found.`, "Open Settings");
+  if (pick) vscode.commands.executeCommand("workbench.action.openSettings", "nytrix.toolchain");
 }
 
 function toolEnv() {
@@ -91,8 +106,8 @@ async function pickCommand() {
   const lang = editor ? editor.document.languageId : "";
   const items = commands
     .filter((c) => c.scope.includes(lang) || c.scope.includes("workspace"))
-    .map((c) => ({ label: c.title, description: c.id, command: c }));
-  const choice = await vscode.window.showQuickPick(items, { placeHolder: "Nytrix command" });
+    .map((c) => ({ label: c.title, command: c }));
+  const choice = await vscode.window.showQuickPick(items, { placeHolder: "Run a Nytrix command" });
   if (!choice) return;
   let input;
   if (choice.command.input) {
@@ -105,17 +120,17 @@ async function pickCommand() {
 }
 
 async function startServer(context) {
-  const dir = toolchainDir();
-  if (!dir) {
+  const lsp = findTool("ny-lsp");
+  if (!lsp) {
     status.text = "$(warning) Nytrix";
     status.tooltip = "ny-lsp not found: set nytrix.toolchain";
-    output.appendLine("ny-lsp not found. Set `nytrix.toolchain` to the directory containing ny-lsp and ny-dap.");
+    await missingTool("ny-lsp");
     return;
   }
   const manifestPath = path.join(context.extensionPath, "language", "languages.json");
   const manifest = isFile(manifestPath) ? JSON.parse(fs.readFileSync(manifestPath, "utf8")) : {};
   const selector = (manifest.server && manifest.server.documentSelector) || [{ language: "nytrix" }];
-  const server = { command: path.join(dir, "ny-lsp" + EXE), args: cfg().get("server.arguments", []), options: { env: toolEnv() } };
+  const server = { command: lsp, args: cfg().get("server.arguments", []), options: { env: toolEnv() } };
   client = new LanguageClient("nytrix", "Nytrix", server, {
     documentSelector: selector.map((s) => ({ scheme: "file", ...s })),
     outputChannel: output,
@@ -130,7 +145,7 @@ async function startServer(context) {
   });
   await client.start();
   status.text = "$(check) Nytrix";
-  status.tooltip = `Toolchain: ${dir}`;
+  status.tooltip = `Toolchain: ${path.dirname(lsp)}`;
 }
 
 async function restartServer(context) {
@@ -142,10 +157,14 @@ async function restartServer(context) {
 function registerDebugger(context) {
   context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory("nytrix", {
     createDebugAdapterDescriptor() {
-      const dir = toolchainDir();
-      if (!dir) throw new Error("ny-dap not found: set nytrix.toolchain");
-      const args = cfg().get("debugger", "") ? ["--debugger", cfg().get("debugger")] : [];
-      return new vscode.DebugAdapterExecutable(path.join(dir, "ny-dap" + EXE), args, { env: toolEnv() });
+      const dap = findTool("ny-dap");
+      if (!dap) {
+        missingTool("ny-dap");
+        throw new Error("ny-dap not found: set nytrix.toolchain");
+      }
+      const debuggerPath = cfg().get("debugger", "");
+      const args = debuggerPath ? ["--debugger", expandHome(debuggerPath)] : [];
+      return new vscode.DebugAdapterExecutable(dap, args, { env: toolEnv() });
     }
   }));
   context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider("nytrix", {
@@ -161,6 +180,18 @@ function registerDebugger(context) {
   }));
 }
 
+/* Debugs the active file with the same configuration F5 would offer. */
+async function debugFile() {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) return vscode.window.showWarningMessage("Open a Nytrix file to debug.");
+  await editor.document.save();
+  const folder = vscode.workspace.getWorkspaceFolder(editor.document.uri);
+  await vscode.debug.startDebugging(folder, {
+    type: "nytrix", request: "launch", name: "Nytrix: Debug File",
+    program: editor.document.uri.fsPath, cwd: path.dirname(editor.document.uri.fsPath)
+  });
+}
+
 async function activate(context) {
   output = vscode.window.createOutputChannel("Nytrix");
   status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
@@ -170,9 +201,11 @@ async function activate(context) {
   context.subscriptions.push(output, status,
     vscode.commands.registerCommand("nytrix.commands", pickCommand),
     vscode.commands.registerCommand("nytrix.restartServer", () => restartServer(context)),
+    vscode.commands.registerCommand("nytrix.debugFile", debugFile),
     vscode.commands.registerCommand("nytrix.showOutput", () => output.show(true)),
     vscode.commands.registerCommand("nytrix.showToolchain", () =>
-      vscode.window.showInformationMessage(`Nytrix toolchain: ${toolchainDir() || "not found"}`)),
+      vscode.window.showInformationMessage(
+        `Nytrix toolchain — ny-lsp: ${findTool("ny-lsp") || "not found"}, ny-dap: ${findTool("ny-dap") || "not found"}`)),
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration("nytrix.toolchain") || e.affectsConfiguration("nytrix.server")) restartServer(context);
     }));

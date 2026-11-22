@@ -4,7 +4,7 @@
  * Package check: the language manifest, the contributed assets, the commands
  * and settings in src/extension.js, and the package versions must agree.
  *
- *   node etc/scripts/check.js
+ *   node src/scripts/check.js
  */
 const fs = require("fs");
 const path = require("path");

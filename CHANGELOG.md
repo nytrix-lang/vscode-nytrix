@@ -2,7 +2,7 @@
 
 All notable changes to the Nytrix VS Code extension.
 
-## 0.3.0 - 2026-11-22
+## 0.2.1 - 2026-11-22
 
 - Compacted the extension to one `src/extension.js`: toolchain discovery, the
   `ny-lsp` client, and the `ny-dap` debug adapter factory. The command list
@@ -10,11 +10,24 @@ All notable changes to the Nytrix VS Code extension.
 - Moved the editor assets to `language/` (manifest, grammars, configuration,
   snippets) as the single source of truth; `npm run sync` writes the
   `package.json` sections and `npm run check` verifies them.
-- Replaced the packaged source with `etc/scripts/{sync,check,package}.js` and a
-  `Makefile` that stages `language/` instead of the old `etc/syntax` tree.
+- Build scripts live in `src/scripts/{sync,check,package}.js`; the `Makefile`
+  stages `language/` instead of the old `etc/syntax` tree.
 - Removed the JS debug adapter, the protocol smoke suite, and the Markdown
-  preview plugin (its module never shipped); Markdown fences stay highlighted
-  through the injected grammar.
+  preview plugin; Markdown fences stay highlighted through the injected
+  grammar.
+- Highlight comments the way `ny` lexes them: `;` line comments, `;;`
+  documentation comments, the `;{ }`, `;[ ]`, `;( )` and `;< >` symbol blocks,
+  and `;MARKER … MARKER;` heredoc blocks.
+- Resolve `ny-lsp` and `ny-dap` independently, preferring `nytrix.toolchain`,
+  `NYTRIX_HOME`, then the workspace `build/release` over `PATH`, so a stale
+  installed copy never shadows a fresh build.
+- Added `Nytrix: Debug File`, an "Open Settings" prompt when a tool is missing,
+  and `~` expansion in `nytrix.debugger`.
+- Shorter command titles (`Show Commands`, `Restart Server`) and a command
+  picker without raw ids.
+- Extension icon rendered from the project's `logo.svg`.
+- Known gap: the native backend emits no local-variable DWARF yet, so the
+  Variables view shows registers only.
 
 ## 0.2.0 - 2026-06-20
 

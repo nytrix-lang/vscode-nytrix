@@ -85,6 +85,13 @@
   },
   "onEnterRules": [
     {
+      "beforeText": "^\\s*;;.*$",
+      "action": {
+        "indent": "none",
+        "appendText": ";; "
+      }
+    },
+    {
       "beforeText": "^\\s*;.*$",
       "action": {
         "indent": "none",

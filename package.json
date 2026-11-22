@@ -2,7 +2,7 @@
   "name": "nytrix",
   "displayName": "Nytrix",
   "description": "Nytrix language support through the toolchain's own ny-lsp and ny-dap.",
-  "version": "0.3.0",
+  "version": "0.2.1",
   "publisher": "x3ric",
   "author": "x3ric",
   "license": "MIT",
@@ -43,11 +43,11 @@
   "main": "./src/extension.js",
   "activationEvents": [],
   "scripts": {
-    "sync": "node etc/scripts/sync.js",
-    "check": "node etc/scripts/check.js",
-    "test": "node etc/scripts/check.js",
-    "package": "node etc/scripts/package.js",
-    "package:ls": "node etc/scripts/package.js --list"
+    "sync": "node src/scripts/sync.js",
+    "check": "node src/scripts/check.js",
+    "test": "node src/scripts/check.js",
+    "package": "node src/scripts/package.js",
+    "package:ls": "node src/scripts/package.js --list"
   },
   "dependencies": {
     "vscode-languageclient": "^9.0.1"
@@ -59,12 +59,17 @@
     "commands": [
       {
         "command": "nytrix.commands",
-        "title": "Commands…",
+        "title": "Show Commands",
+        "category": "Nytrix"
+      },
+      {
+        "command": "nytrix.debugFile",
+        "title": "Debug File",
         "category": "Nytrix"
       },
       {
         "command": "nytrix.restartServer",
-        "title": "Restart Language Server",
+        "title": "Restart Server",
         "category": "Nytrix"
       },
       {

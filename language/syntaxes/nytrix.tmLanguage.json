@@ -177,7 +177,7 @@
           "patterns": [ { "include": "source.nytrix" } ]
         },
         {
-          "name": "comment.block.braces.nytrix",
+          "name": "comment.block.symbol.brace.nytrix",
           "begin": ";\\{",
           "beginCaptures": {
             "0": {
@@ -192,14 +192,14 @@
           }
         },
         {
-          "name": "comment.block.nytrix",
-          "begin": ";\\*",
+          "name": "comment.block.symbol.bracket.nytrix",
+          "begin": ";\\[",
           "beginCaptures": {
             "0": {
               "name": "punctuation.definition.comment.begin.nytrix"
             }
           },
-          "end": "\\*;",
+          "end": "\\];",
           "endCaptures": {
             "0": {
               "name": "punctuation.definition.comment.end.nytrix"
@@ -207,14 +207,60 @@
           }
         },
         {
-          "name": "comment.line.semicolon.nytrix",
-          "begin": ";",
+          "name": "comment.block.symbol.paren.nytrix",
+          "begin": ";\\(",
           "beginCaptures": {
             "0": {
-              "name": "punctuation.definition.comment.nytrix"
+              "name": "punctuation.definition.comment.begin.nytrix"
             }
           },
-          "end": "$"
+          "end": "\\);",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.end.nytrix"
+            }
+          }
+        },
+        {
+          "name": "comment.block.symbol.angle.nytrix",
+          "begin": ";<",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.begin.nytrix"
+            }
+          },
+          "end": ">;",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.end.nytrix"
+            }
+          }
+        },
+        {
+          "name": "comment.block.marker.nytrix",
+          "begin": "(;)([A-Za-z_][A-Za-z0-9_]*)(?=\\s|$)",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.comment.begin.nytrix"
+            },
+            "2": {
+              "name": "entity.name.tag.comment.nytrix"
+            }
+          },
+          "end": "^[A-Za-z_][A-Za-z0-9_]*;",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.end.nytrix"
+            }
+          }
+        },
+        {
+          "name": "comment.line.documentation.nytrix",
+          "match": ";;.*$"
+        },
+        {
+          "name": "comment.line.semicolon.nytrix",
+          "match": ";.*$"
         }
       ]
     },

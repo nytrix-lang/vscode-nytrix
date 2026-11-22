@@ -11,7 +11,9 @@ VSCE ?= npx --prefix $(VSCE_PREFIX) --yes --package @vscode/vsce@$(VSCE_VERSION)
 PACKAGE_STAGE ?= /tmp/nytrix-vscode-package
 
 LANGUAGE_FILES != find language -type f
-SOURCES := src/extension.js package.json package-lock.json $(LANGUAGE_FILES)
+PACKAGED_DOCS := README.md CHANGELOG.md LICENSE logo.png .vscodeignore
+SOURCES := $(shell find src -type f) package.json package-lock.json \
+	$(LANGUAGE_FILES) $(PACKAGED_DOCS)
 PACKAGE_FILES := src language logo.png .vscodeignore package.json package-lock.json \
 	README.md CHANGELOG.md LICENSE
 

@@ -6,7 +6,7 @@
  * (languages, grammars, snippets, breakpoints, debuggers); never edit those
  * sections by hand.
  *
- *   node etc/scripts/sync.js [--check]
+ *   node src/scripts/sync.js [--check]
  *
  * --check reports whether package.json is current without writing it.
  */
