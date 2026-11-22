@@ -101,10 +101,14 @@ async function perform(action) {
   if (!action || typeof action !== "object") return;
   await saveUri(action.save);
   if (action.kind === "process") {
-    const exec = new vscode.ProcessExecution(action.command, action.args || [], { cwd: action.cwd, env: toolEnv() });
-    const task = new vscode.Task({ type: "nytrix" }, vscode.TaskScope.Workspace, action.title || "Nytrix", "nytrix", exec, []);
-    task.presentationOptions = { reveal: vscode.TaskRevealKind.Always, clear: true, panel: vscode.TaskPanelKind.Shared };
-    await vscode.tasks.executeTask(task);
+    // A real terminal, so programs and the REPL can read stdin.
+    const name = action.title || "Nytrix";
+    for (const t of vscode.window.terminals) if (t.name === name) t.dispose();
+    const term = vscode.window.createTerminal({
+      name, shellPath: action.command, shellArgs: action.args || [], cwd: action.cwd,
+      env: cfg().get("server.environment", {}), iconPath: new vscode.ThemeIcon("play")
+    });
+    term.show();
   } else if (action.kind === "debug") {
     const uri = action.save ? vscode.Uri.parse(action.save) : undefined;
     const folder = uri ? vscode.workspace.getWorkspaceFolder(uri) : undefined;

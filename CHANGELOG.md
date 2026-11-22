@@ -27,6 +27,12 @@ All notable changes to the Nytrix VS Code extension.
   `Ctrl+Alt+R` to run. All generated from `language/languages.json`.
 - Short command titles (`Run File`, `Debug File`, `Show Commands`) and a
   command picker without raw ids.
+- Run, REPL and the other tool commands open in an interactive terminal
+  instead of a task, so programs can read stdin and the REPL accepts input.
+- Needs `ny-lsp` with scope-aware go-to-definition, hover, references and
+  rename: locals, parameters and struct fields resolve to their own
+  declaration instead of same-named stdlib symbols, `use` lines open the
+  module file, and renaming a local stays inside its function.
 - Debugging asks for a native debugger up front: a clear error when neither
   gdb 14+ nor lldb-dap is installed, an "Open Settings" prompt when a tool is
   missing, and `~` expansion in `nytrix.debugger`.
