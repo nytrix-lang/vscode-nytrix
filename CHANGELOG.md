@@ -2,6 +2,20 @@
 
 All notable changes to the Nytrix VS Code extension.
 
+## 0.3.0 - 2026-11-22
+
+- Compacted the extension to one `src/extension.js`: toolchain discovery, the
+  `ny-lsp` client, and the `ny-dap` debug adapter factory. The command list
+  comes from `ny-lsp` (`nytrix/commands`), so the extension carries none.
+- Moved the editor assets to `language/` (manifest, grammars, configuration,
+  snippets) as the single source of truth; `npm run sync` writes the
+  `package.json` sections and `npm run check` verifies them.
+- Replaced the packaged source with `etc/scripts/{sync,check,package}.js` and a
+  `Makefile` that stages `language/` instead of the old `etc/syntax` tree.
+- Removed the JS debug adapter, the protocol smoke suite, and the Markdown
+  preview plugin (its module never shipped); Markdown fences stay highlighted
+  through the injected grammar.
+
 ## 0.2.0 - 2026-06-20
 
 - Modularized extension source into `src/core`, `src/lsp`, `src/diagnostics`, `src/symbols`, `src/providers`, `src/debugger`, and `src/commands`.

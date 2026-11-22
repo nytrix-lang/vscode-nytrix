@@ -10,18 +10,9 @@ const CORE_PACKAGE_FILES = [
   "CHANGELOG.md",
   "LICENSE",
   "logo.png",
-  "syntax/language-configuration.json",
-  "syntax/nshape-language-configuration.json",
-  "syntax/shader-language-configuration.json",
-  "syntax/nytrix.tmLanguage.json",
-  "syntax/nshape.tmLanguage.json",
-  "syntax/shader.tmLanguage.json",
-  "syntax/markdown-nytrix.tmLanguage.json",
-  "extension.js",
-  "nytrixDebugAdapter.js",
-  "syntax/nytrix.code-snippets",
-  "syntax/nshape.code-snippets"
+  "src/extension.js"
 ];
+const CORE_PACKAGE_DIRS = ["language"];
 
 function errorMessage(err) {
   return err && err.message ? err.message : String(err);
@@ -73,6 +64,7 @@ function walkFiles(root, rel = "") {
 
 function fallbackPackageList(cwd) {
   const files = new Set(CORE_PACKAGE_FILES.filter((file) => fs.existsSync(path.join(cwd, file))));
+  for (const dir of CORE_PACKAGE_DIRS) for (const file of walkFiles(cwd, dir)) files.add(file);
   for (const depDir of productionDependencyDirs(cwd).slice(1).filter(fs.existsSync)) {
     const rel = path.relative(cwd, depDir).replace(/\\/g, "/");
     for (const file of walkFiles(cwd, rel)) files.add(file);
@@ -120,6 +112,7 @@ async function main() {
 }
 
 module.exports = {
+  CORE_PACKAGE_DIRS,
   CORE_PACKAGE_FILES,
   fallbackPackageList,
   packagePathForDependency,

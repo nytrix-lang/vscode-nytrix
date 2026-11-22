@@ -1,0 +1,127 @@
+{
+  "$comment": "Editor-facing description of the Nytrix languages. Paths are relative to this directory, the canonical copy; package.json mirrors it through `npm run sync`. Change the language here, never in the generated package.json sections.",
+  "languages": [
+    {
+      "id": "nytrix",
+      "aliases": [
+        "Nytrix",
+        "nytrix",
+        "ny"
+      ],
+      "extensions": [
+        ".ny"
+      ],
+      "configuration": "configuration/nytrix.json"
+    },
+    {
+      "id": "nshape",
+      "aliases": [
+        "Nytrix Shape",
+        "NShape",
+        "nshape"
+      ],
+      "extensions": [
+        ".nshape"
+      ],
+      "configuration": "configuration/nshape.json"
+    }
+  ],
+  "grammars": [
+    {
+      "language": "nytrix",
+      "scopeName": "source.nytrix",
+      "path": "syntaxes/nytrix.tmLanguage.json",
+      "embeddedLanguages": {
+        "meta.embedded.inline.asm.nytrix": "asm",
+        "meta.embedded.inline.ini.nytrix": "ini",
+        "meta.embedded.inline.json.nytrix": "json",
+        "meta.embedded.inline.regex.nytrix": "regexp",
+        "meta.embedded.inline.sql.nytrix": "sql",
+        "meta.embedded.inline.xml.nytrix": "xml",
+        "meta.embedded.inline.yaml.nytrix": "yaml",
+        "meta.embedded.block.python.nytrix": "python",
+        "meta.embedded.block.javascript.nytrix": "javascript",
+        "meta.embedded.block.typescript.nytrix": "typescript",
+        "meta.embedded.block.c.nytrix": "c",
+        "meta.embedded.block.cpp.nytrix": "cpp",
+        "meta.embedded.block.rust.nytrix": "rust",
+        "meta.embedded.block.shell.nytrix": "shellscript",
+        "meta.embedded.block.json.nytrix": "json",
+        "meta.embedded.block.xml.nytrix": "xml",
+        "meta.embedded.block.nytrix.nytrix": "nytrix"
+      }
+    },
+    {
+      "language": "nshape",
+      "scopeName": "source.nytrix-shape",
+      "path": "syntaxes/nshape.tmLanguage.json",
+      "embeddedLanguages": {
+        "meta.embedded.block.nytrix.nytrix-shape": "nytrix",
+        "meta.embedded.block.c.nytrix-shape": "c",
+        "meta.embedded.block.python.nytrix-shape": "python",
+        "source.nytrix": "nytrix",
+        "source.c": "c",
+        "source.python": "python"
+      }
+    },
+    {
+      "scopeName": "source.nytrix-shader",
+      "path": "syntaxes/shader.tmLanguage.json"
+    },
+    {
+      "scopeName": "markdown.nytrix.codeblock",
+      "path": "syntaxes/markdown-nytrix.tmLanguage.json",
+      "injectTo": [
+        "text.html.markdown"
+      ],
+      "embeddedLanguages": {
+        "meta.embedded.block.nytrix": "nytrix",
+        "source.nytrix": "nytrix"
+      }
+    }
+  ],
+  "snippets": [
+    {
+      "language": "nytrix",
+      "path": "snippets/nytrix.code-snippets"
+    },
+    {
+      "language": "nshape",
+      "path": "snippets/nshape.code-snippets"
+    }
+  ],
+  "breakpoints": [
+    {
+      "language": "nytrix"
+    },
+    {
+      "language": "nshape"
+    }
+  ],
+  "markdownFences": {
+    "nytrix": [
+      "ny",
+      "nytrix"
+    ]
+  },
+  "server": {
+    "executable": "ny-lsp",
+    "documentSelector": [
+      {
+        "language": "nytrix"
+      },
+      {
+        "language": "nshape"
+      }
+    ]
+  },
+  "debugger": {
+    "type": "nytrix",
+    "label": "Nytrix",
+    "executable": "ny-dap",
+    "languages": [
+      "nytrix",
+      "nshape"
+    ]
+  }
+}
